@@ -1,0 +1,83 @@
+services:
+  # =========================================================================
+  # 1. PlotPin Backend REST API & WebSocket Server
+  # =========================================================================
+  - type: web
+    name: plotpin-backend
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: plotpin-frontend
+          property: host
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: plotpin-ai-service
+          property: host
+
+  # =========================================================================
+  # 2. PlotPin Frontend React 18 SPA (Vite + Tailwind CSS)
+  # =========================================================================
+  - type: web
+    name: plotpin-frontend
+    runtime: static
+    plan: free
+    region: oregon
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: plotpin-backend
+          property: host
+      - key: VITE_SOCKET_URL
+        fromService:
+          type: web
+          name: plotpin-backend
+          property: host
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_KEY
+        sync: false
+
+  # =========================================================================
+  # 3. PlotPin AI Recommendations Microservice (FastAPI + Python)
+  # =========================================================================
+  - type: web
+    name: plotpin-ai-service
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: ai-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: AI_SERVICE_SECRET
+        generateValue: true

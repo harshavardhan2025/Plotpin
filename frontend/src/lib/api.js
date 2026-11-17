@@ -5,9 +5,14 @@ const rawApiUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_A
   ? String(import.meta.env.VITE_API_URL).trim().replace(/\/+$/, '')
   : '';
 
+let normalizedApiUrl = rawApiUrl;
+if (normalizedApiUrl && !normalizedApiUrl.startsWith('http://') && !normalizedApiUrl.startsWith('https://') && !normalizedApiUrl.startsWith('/')) {
+  normalizedApiUrl = `https://${normalizedApiUrl}`;
+}
+
 // Ensure BASE_URL ends with /api/v1 without duplicating if VITE_API_URL already contains /api/v1
-export const BASE_URL = rawApiUrl
-  ? (rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl}/api/v1`)
+export const BASE_URL = normalizedApiUrl
+  ? (normalizedApiUrl.endsWith('/api/v1') ? normalizedApiUrl : `${normalizedApiUrl}/api/v1`)
   : '/api/v1';
 
 let currentRole = 'user';

@@ -192,6 +192,23 @@ npm run dev
 
 ---
 
+## 🌐 Deploy to Render
+
+PlotPin is configured for seamless deployment on [Render](https://render.com) using the included [`render.yaml`](render.yaml) Blueprint:
+
+1. Push your changes to GitHub.
+2. In your Render Dashboard, click **New +** ➔ **Blueprint**.
+3. Select your repository `harshavardhan2025/Plotpin`.
+4. Render automatically provisions:
+   - **`plotpin-backend`**: Node.js Express REST API & WebSocket service
+   - **`plotpin-frontend`**: React 18 Static Site with client-side SPA rewrite rules
+   - **`plotpin-ai-service`**: Python FastAPI microservice for scored recommendations
+5. Provide your Supabase project URL and keys when prompted.
+
+For detailed step-by-step instructions and manual setup options, see [Render Deployment Guide](docs/deployment/render.md).
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).

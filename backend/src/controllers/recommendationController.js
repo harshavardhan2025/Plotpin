@@ -663,7 +663,10 @@ exports.getRecommendations = async (req, res, next) => {
     let fastApiResults = [];
 
     try {
-      const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000';
+      let aiServiceUrl = (process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000').trim().replace(/\/+$/, '');
+      if (!aiServiceUrl.startsWith('http://') && !aiServiceUrl.startsWith('https://')) {
+        aiServiceUrl = `https://${aiServiceUrl}`;
+      }
       const aiSecret = process.env.AI_SERVICE_SECRET || 'property_marketplace_ai_secret';
 
       const response = await fetch(`${aiServiceUrl}/v1/recommendations/rank`, {

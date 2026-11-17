@@ -39,7 +39,7 @@ const io = new Server(server, {
 
 initSocket(io);
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================`);
   console.log(`🚀 Property Marketplace Express API running on port ${PORT}`);
   console.log(`📡 WebSocket / Socket.IO active`);
