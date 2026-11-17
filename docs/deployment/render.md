@@ -9,7 +9,7 @@ This guide walks you through deploying the complete **PlotPin** platform on [Ren
 | Service | Render Type | Runtime | Build Command | Start Command / Publish Dir | Health Check |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`plotpin-backend`** | Web Service | `Node` | `npm install` | `npm start` | `/api/v1/health` |
-| **`plotpin-frontend`** | Static Site | `Static` | `npm install && npm run build` | `dist` | — |
+| **`plotpin`** (Frontend) | Static Site | `Static` | `npm install && npm run build` | `dist` | — |
 | **`plotpin-ai-service`**| Web Service | `Python` | `pip install -r requirements.txt` | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` | `/health` |
 
 ---
@@ -69,7 +69,7 @@ If you prefer setting up the services individually on Render:
    * `JWT_ACCESS_SECRET`: `<minimum-32-character-random-secret>`
    * `AI_SERVICE_URL`: `https://plotpin-ai-service.onrender.com`
    * `AI_SERVICE_SECRET`: *(Same string used in Step 1)*
-   * `FRONTEND_URL`: `https://plotpin-frontend.onrender.com` *(Update after Step 3)*
+   * `FRONTEND_URL`: `https://plotpin.onrender.com` *(Update after Step 3)*
 5. Click **Create Web Service**. Note the deployed URL (e.g. `https://plotpin-backend.onrender.com`).
 
 ---
@@ -78,7 +78,7 @@ If you prefer setting up the services individually on Render:
 1. **New +** ➔ **Static Site**.
 2. Connect your repository.
 3. Configure:
-   * **Name:** `plotpin-frontend`
+   * **Name:** `plotpin`
    * **Root Directory:** `frontend`
    * **Build Command:** `npm install && npm run build`
    * **Publish Directory:** `dist`
@@ -100,5 +100,5 @@ If you prefer setting up the services individually on Render:
 
 - [ ] **Backend Health Check:** Visit `https://plotpin-backend.onrender.com/api/v1/health` ➔ should return `{"status": "ok", "service": "property-marketplace-api"}`.
 - [ ] **AI Service Health Check:** Visit `https://plotpin-ai-service.onrender.com/health` ➔ should return `{"status": "ok"}`.
-- [ ] **Frontend Application:** Visit `https://plotpin-frontend.onrender.com` ➔ test property search, 3D cadastral viewer, and citizen login.
-- [ ] **CORS Verification:** Ensure requests from `plotpin-frontend.onrender.com` are authorized without browser CORS blocks (already automated in `backend/src/app.js`).
+- [ ] **Frontend Application:** Visit `https://plotpin.onrender.com` ➔ test property search, 3D cadastral viewer, and citizen login.
+- [ ] **CORS Verification:** Ensure requests from `plotpin.onrender.com` are authorized without browser CORS blocks (already automated in `backend/src/app.js`).

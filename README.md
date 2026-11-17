@@ -201,7 +201,7 @@ PlotPin is configured for seamless deployment on [Render](https://render.com) us
 3. Select your repository `harshavardhan2025/Plotpin`.
 4. Render automatically provisions:
    - **`plotpin-backend`**: Node.js Express REST API & WebSocket service
-   - **`plotpin-frontend`**: React 18 Static Site with client-side SPA rewrite rules
+   - **`plotpin`**: React 18 Static Site with client-side SPA rewrite rules (deployed to https://plotpin.onrender.com)
    - **`plotpin-ai-service`**: Python FastAPI microservice for scored recommendations
 5. Provide your Supabase project URL and keys when prompted.
 
