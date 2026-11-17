@@ -44,19 +44,14 @@ services:
     staticPublishPath: dist
     routes:
       - type: rewrite
+        source: /api/*
+        destination: https://plotpin-backend.onrender.com/api/*
+      - type: rewrite
         source: /*
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: plotpin-backend
-          property: host
-      - key: VITE_SOCKET_URL
-        fromService:
-          type: web
-          name: plotpin-backend
-          property: host
+        value: https://plotpin-backend.onrender.com/api/v1
       - key: VITE_SUPABASE_URL
         sync: false
       - key: VITE_SUPABASE_KEY

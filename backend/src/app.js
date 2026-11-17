@@ -19,43 +19,20 @@ const { compressionMiddleware } = require('./middleware/compression');
 
 const app = express();
 
-// Allowed origins
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'http://127.0.0.1:5174',
-  'http://127.0.0.1:5175'
-].filter(Boolean);
+// Trust reverse proxy for secure headers and rate limiting on Render / cloud hosts
+app.set('trust proxy', 1);
 
+// Permissive CORS with credential authorization for web & mobile clients
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, server-to-server)
-    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-      return callback(null, true);
-    }
-    try {
-      const hostname = new URL(origin).hostname;
-      // Allow Vercel, Netlify, Render, Railway, Cloudflare Pages
-      if (
-        hostname.endsWith('.vercel.app') ||
-        hostname.endsWith('.netlify.app') ||
-        hostname.endsWith('.onrender.com') ||
-        hostname.endsWith('.railway.app') ||
-        hostname.endsWith('.pages.dev') ||
-        hostname === 'localhost'
-      ) {
-        return callback(null, true);
-      }
-    } catch (e) {}
-
-    return callback(new Error(`CORS policy: Origin ${origin} not authorized.`));
+    // Authorize caller origin gracefully
+    return callback(null, true);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS']
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'x-ai-secret']
 }));
+app.options('*', cors());
 
 // Standard Security Headers
 app.use((req, res, next) => {

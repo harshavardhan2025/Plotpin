@@ -6,7 +6,11 @@ const rawApiUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_A
   : '';
 
 let normalizedApiUrl = rawApiUrl;
-if (normalizedApiUrl && !normalizedApiUrl.startsWith('http://') && !normalizedApiUrl.startsWith('https://') && !normalizedApiUrl.startsWith('/')) {
+
+// If VITE_API_URL was set to an internal Render container name (e.g. 'plotpin-backend:10000' or 'plotpin-backend')
+if (normalizedApiUrl.includes('plotpin-backend') && !normalizedApiUrl.includes('.onrender.com')) {
+  normalizedApiUrl = 'https://plotpin-backend.onrender.com';
+} else if (normalizedApiUrl && !normalizedApiUrl.startsWith('http://') && !normalizedApiUrl.startsWith('https://') && !normalizedApiUrl.startsWith('/')) {
   normalizedApiUrl = `https://${normalizedApiUrl}`;
 }
 
@@ -86,10 +90,19 @@ async function fetchJson(endpoint, options = {}) {
     ...(options.headers || {})
   };
 
-  const response = await fetch(requestUrl, {
-    ...options,
-    headers
-  });
+  let response;
+  try {
+    response = await fetch(requestUrl, {
+      ...options,
+      headers
+    });
+  } catch (netErr) {
+    if (!options._retried) {
+      await new Promise(r => setTimeout(r, 2000));
+      return fetchJson(endpoint, { ...options, _retried: true });
+    }
+    throw new Error(`Unable to reach backend API (${requestUrl}). If using Render free tier, the server may be waking up from sleep. Please wait 15 seconds and try again.`);
+  }
 
   const data = await response.json().catch(() => ({}));
 
