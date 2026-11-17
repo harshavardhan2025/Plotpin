@@ -55,32 +55,53 @@ PlotPin is a fullstack real estate marketplace and land intelligence platform bu
 
 ## 📁 Repository Structure
 
-```
-├── backend/
+```text
+PlotPin/
+├── frontend/                # React 18 SPA (Vite + Tailwind CSS + Three.js + Leaflet)
 │   ├── src/
-│   │   ├── config/          # Database connection & in-memory cache adapter
-│   │   ├── controllers/     # Authentication, properties, admin, recommendations
-│   │   ├── middleware/      # JWT authentication, role authorization, rate limiting
-│   │   ├── routes/          # Express REST API routes (/api/v1/*)
-│   │   ├── services/        # OTP generation, registration recovery, email delivery
-│   │   ├── utils/           # Cadastral eligibility, currency parsers, geometry
-│   │   ├── app.js           # Express app configuration & middleware
-│   │   └── server.js        # Server entry point & WebSocket server
-│   ├── tests/               # Security regression & deployment readiness test suites
-│   ├── .env.example         # Template backend environment variables
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── components/      # UI components (maps, modals, cards, navigation)
-│   │   ├── contexts/        # AuthContext, PropertyContext, ThemeContext
-│   │   ├── lib/             # API client, Supabase client configuration
-│   │   ├── pages/           # Explore, Map, AI Matcher, Admin, Portfolio
+│   │   ├── components/      # UI components (maps, 3D viewers, modals, cards, navigation)
+│   │   ├── contexts/        # AuthContext, PropertyContext
+│   │   ├── lib/             # API client (with path normalizer), Supabase SDK
+│   │   ├── pages/           # Explore, Map, AI Matcher, Admin Console, Portfolio
 │   │   ├── App.jsx          # Route hierarchy & layouts
 │   │   └── main.jsx         # Client mount
 │   ├── .env.example         # Template frontend environment variables
 │   ├── vite.config.js       # Vite configuration with reverse proxy & manual chunks
 │   └── package.json
-├── package.json             # Root orchestrator scripts
+│
+├── backend/                 # Node.js + Express API + Socket.IO
+│   ├── src/
+│   │   ├── config/          # Supabase PostgreSQL adapter & storage engine
+│   │   ├── controllers/     # Authentication, properties, admin, recommendations
+│   │   ├── middleware/      # JWT/Supabase auth, role authorization, rate limiter
+│   │   ├── routes/          # Express REST API routes (/api/v1/*)
+│   │   ├── services/        # OTP generation, registration recovery, email delivery
+│   │   ├── utils/           # Cadastral eligibility, currency parsers, geometry
+│   │   ├── app.js           # Express app configuration & middleware
+│   │   └── server.js        # Server entry point & WebSocket server
+│   ├── assets/              # Property images served locally
+│   ├── scripts/             # Database maintenance scripts & SQL schemas
+│   │   └── sql/             # PostgreSQL DDL & RLS hardening scripts
+│   ├── tests/               # Security regression & deployment readiness test suites
+│   ├── .env.example         # Template backend environment variables
+│   └── package.json
+│
+├── ai-service/              # Python FastAPI Microservice (Port 8000)
+│   ├── app/
+│   │   ├── api/             # REST endpoints for scored recommendations
+│   │   ├── recommenders/    # Hard filters, multi-factor scoring, semantic similarity
+│   │   ├── schemas/         # Pydantic request/response schemas
+│   │   └── main.py          # FastAPI application entrypoint
+│   ├── tests/               # AI recommendation test suite
+│   ├── requirements.txt     # Python dependencies
+│   └── pyproject.toml
+│
+├── docs/                    # Complete platform documentation & audit logs
+│   ├── reports/             # System audit, security, and feature compliance reports
+│   ├── architecture.md      # Full architectural overview
+│   └── verification-workflow.md
+│
+├── package.json             # Root monorepo workspace runner (install, build, dev)
 └── README.md
 ```
 

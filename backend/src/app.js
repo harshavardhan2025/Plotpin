@@ -93,7 +93,13 @@ app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 const fs = require('fs');
 
 // Serve local assets for property photos
-app.use('/assets', express.static(path.join(__dirname, '../../assets')));
+const backendAssets = path.join(__dirname, '../assets');
+const rootAssets = path.join(__dirname, '../../assets');
+if (fs.existsSync(backendAssets)) {
+  app.use('/assets', express.static(backendAssets));
+} else if (fs.existsSync(rootAssets)) {
+  app.use('/assets', express.static(rootAssets));
+}
 
 // In production or when built frontend exists, serve static assets
 const frontendDist = path.join(__dirname, '../../frontend/dist');
