@@ -1,0 +1,46 @@
+{
+  "adminpass2026@gmil.com": {
+    "name": "admin@plotpin.com",
+    "email": "adminpass2026@gmil.com",
+    "mobile": "+91 9866963013",
+    "passwordHash": "$2a$10$Ljn6y.Bw3KWBhEnEbKtlteZjnBLOaMxcB6JleKvRRBtHJEI9eBvuu",
+    "preferences": {
+      "preferredLocations": [
+        "Indiranagar"
+      ],
+      "budgetMin": 0,
+      "budgetMax": 50000000,
+      "propertyTypes": [
+        "flat",
+        "villa"
+      ],
+      "purpose": "sale"
+    },
+    "emailVerified": false,
+    "createdAt": 1794931092211,
+    "updatedAt": 1794931148387,
+    "expiresAt": 1795017548387
+  },
+  "kharshav67@gmail.com": {
+    "name": "admin@plotpin.com",
+    "email": "kharshav67@gmail.com",
+    "mobile": "+91 9866963018",
+    "passwordHash": "$2a$10$FxfXpENjEE9RZGitxM2FVeTbl1aTD5.Y.HMWDao09bzKJ9/.aQLP.",
+    "preferences": {
+      "preferredLocations": [
+        "Indiranagar"
+      ],
+      "budgetMin": 0,
+      "budgetMax": 50000000,
+      "propertyTypes": [
+        "flat",
+        "villa"
+      ],
+      "purpose": "sale"
+    },
+    "emailVerified": false,
+    "createdAt": 1794932418003,
+    "updatedAt": 1794932418003,
+    "expiresAt": 1795018818003
+  }
+}

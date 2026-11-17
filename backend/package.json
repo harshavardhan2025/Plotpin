@@ -1,0 +1,23 @@
+{
+  "name": "property-marketplace-backend",
+  "version": "1.0.0",
+  "description": "Property Marketplace - Node.js Express REST API & WebSocket Backend",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "clear:db": "node scripts/clearDatabase.js",
+    "test": "node tests/security.test.js && node tests/deployment-readiness.test.js && node tests/property-lifecycle.test.js && node tests/appointments-calendar.test.js && node tests/complete-auth-audit.test.js && node tests/recommendations.test.js && node tests/business_logic.test.js && node tests/otp-security.test.js && node tests/registration-recovery.test.js && node tests/geospatial-nearby.test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^10.2.1",
+    "socket.io": "^4.7.2"
+  }
+}

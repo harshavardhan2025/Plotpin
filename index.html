@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LandPin | Luxury Realty & RERA Legal Concierge</title>
+  <meta name="description" content="LandPin - 100% Direct Owner Network, Zero Brokerage, RERA Legal Concierge, Cadastral Drone Surveys and Escrow Vault.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234F46E5'><rect width='24' height='24' rx='6'/><path d='M7 19V5h10v14' stroke='white' stroke-width='2'/><path d='M10 8h1M10 12h1M10 16h1M13 8h1M13 12h1M13 16h1' stroke='white' stroke-width='1.5'/></svg>">
+</head>
+<body class="view-mode-desktop">
+
+  <!-- ========================================================================
+       TOP GLOBAL CONTROL BAR: DEVICE MODE & ROLE / JURISDICTION CONTROLLER
+       ======================================================================== -->
+  <header class="global-control-bar">
+    <div class="brand-badge">
+      <div class="brand-icon-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 21h18"/>
+          <path d="M5 21V7l8-4v18"/>
+          <path d="M19 21V11l-6-4"/>
+          <path d="M9 9h1"/>
+          <path d="M9 13h1"/>
+          <path d="M9 17h1"/>
+        </svg>
+      </div>
+      <span>LandPin</span>
+      <span class="brand-meta-tag">DIRECT &amp; RERA CONCIERGE</span>
+    </div>
+
+    <!-- Mode Switcher: Desktop vs Mobile simulator -->
+    <div class="switcher-pill-group">
+      <button class="mode-btn active" id="modeDesktopBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Desktop Mode
+      </button>
+      <button class="mode-btn" id="modeMobileBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        Mobile App Frame
+      </button>
+    </div>
+
+    <!-- Role Architecture Switcher -->
+    <div class="role-switcher-wrapper">
+      <span class="role-label">Account Role:</span>
+      <div class="role-select-box">
+        <button class="role-option-btn active" data-role="buyer" title="Unified Account (Buyer & Seller have same account!)">
+          <span>👤 Buyer / Tenant</span>
+          <span class="role-badge-tag">Unified</span>
+        </button>
+        <button class="role-option-btn" data-role="seller" title="Unified Account (Same Vikramaditya Rao account in Owner Mode!)">
+          <span>🏡 Owner / Seller</span>
+          <span class="role-badge-tag">Unified</span>
+        </button>
+        <button class="role-option-btn" data-role="broker" title="Broker has distinct account & Escrow Desk">
+          <span>💼 Principal Broker</span>
+        </button>
+        <button class="role-option-btn" data-role="admin" title="Admin has location-based account!">
+          <span>🛡️ Regional Admin</span>
+        </button>
+      </div>
+
+      <!-- Location-based Admin Dropdown (Admin has diff account based on loc) -->
+      <select class="admin-loc-select" id="adminLocSelect" title="Admin jurisdiction location">
+        <option value="blr-east">📍 Admin: BLR East (Indiranagar / Whitefield)</option>
+        <option value="blr-north">📍 Admin: BLR North (Devanahalli Corridor)</option>
+        <option value="blr-south">📍 Admin: BLR South (Koramangala / HSR)</option>
+        <option value="blr-central">📍 Super Admin: Central Nodal Trustee</option>
+      </select>
+
+      <button class="mode-btn" onclick="openModal('registerModal')" style="background: rgba(99, 102, 241, 0.2); color: #c7d2fe; border: 1px solid rgba(165, 180, 252, 0.3);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Register / Switch
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       APPLICATION CONTAINER (Adapts dynamically between Desktop and Mobile)
+       ======================================================================== -->
+  <main class="app-wrapper">
+    <div class="app-viewport">
+
+      <!-- Phone Island Notch (Visible only in Mobile Frame simulator) -->
+      <div class="phone-island-bar">
+        <span>9:41</span>
+        <div class="status-notch"></div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 8h22M1 12h22M1 16h22"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="18" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/></svg>
+        </div>
+      </div>
+
+      <!-- LandPin App Top Header (Exact Match to Image 1) -->
+      <div class="app-header">
+        <div class="header-left">
+          <a href="#" class="landpin-logo" onclick="switchView('explore'); return false;">
+            <div class="logo-icon-svg">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9h1M9 13h1M9 17h1"/></svg>
+            </div>
+            <span>LandPin</span>
+          </a>
+
+          <!-- Location Picker dropdown -->
+          <button class="location-dropdown-btn" onclick="openModal('locationPickerModal')">
+            <span class="loc-pin-icon">📍</span>
+            <span id="headerLocationLabel">Indiranagar, BLR</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+
+        <div class="header-right">
+          <div class="live-concierge-pill" onclick="switchView('concierge')" style="cursor:pointer;" title="Open Legal Concierge Live Desk">
+            <span class="pulse-dot"></span>
+            <span>LIVE</span>
+          </div>
+
+          <button class="icon-circle-btn" onclick="showToast('🔔 2 New Notifications: Surveyor Rajesh en-route for Devanahalli plot; e-Khata slot confirmed for tomorrow!')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="badge-dot"></span>
+          </button>
+
+          <button class="user-avatar-btn" onclick="openModal('registerModal')" title="View Account Profile">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" alt="Vikramaditya Rao Avatar">
+          </button>
+        </div>
+      </div>
+
+      <!-- Account Role Indicator Banner -->
+      <div class="account-role-indicator-banner" id="roleIndicatorBanner">
+        <div id="roleBannerText">
+          <span>👤 <strong>Unified Client Account:</strong> Vikramaditya Rao (Buyer/Tenant Mode)</span>
+          <span class="role-switch-link" onclick="switchRole('seller')">Switch to Seller Mode ➔</span>
+        </div>
+      </div>
+
+      <!-- Scrollable Inner Viewport Content -->
+      <div class="viewport-content">
+
+        <!-- ====================================================================
+             VIEW 1: EXPLORE & DIRECT OWNER FEED (Exact match to Image 1)
+             ==================================================================== -->
+        <section class="app-screen-view" id="view-explore" style="display: block;">
+
+          <!-- Search Neighborhood Box -->
+          <div class="search-section">
+            <div class="search-box-container">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="search-input-field" placeholder="SEARCH NEIGHBORHOOD" value="Indiranagar, 100ft Road" id="exploreSearchInput">
+              <button class="gps-locate-btn" onclick="showToast('📡 GPS Locating: Accurately pinned to 100ft Road, Indiranagar!')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+                GPS
+              </button>
+            </div>
+          </div>
+
+          <!-- Intent Pills: Buy/Purchase vs Rent/To-Let -->
+          <div class="intent-tabs-wrapper">
+            <button class="intent-tab active" onclick="setIntent('buy', this)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              <span>Buy / Purchase</span>
+              <span class="intent-tab-badge">SELL</span>
+            </button>
+            <button class="intent-tab rent" onclick="setIntent('rent', this)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              <span>Rent / To-Let &amp; PG</span>
+              <span class="intent-tab-badge">1.4K+</span>
+            </button>
+          </div>
+
+          <!-- Proximity Radar Row -->
+          <div class="proximity-radar-row">
+            <div class="radar-label">
+              <span style="color:#10B981;">●</span>
+              <span>PROXIMITY RADAR</span>
+            </div>
+            <div class="radar-chips">
+              <div class="radar-chip active" onclick="toggleRadarFilter('NEAR TOUCH 100M', this)">
+                <span>⚡ NEAR TOUCH 100M</span>
+              </div>
+              <div class="radar-chip" onclick="toggleRadarFilter('10 MIN WALK', this)">
+                <span>🚶 10 MIN WALK</span>
+              </div>
+              <div class="radar-chip" onclick="toggleRadarFilter('NEAR METRO', this)">
+                <span>🚇 NEAR METRO</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 100% Direct Owner Network Banner -->
+          <div class="direct-network-banner">
+            <div class="banner-left">
+              <div class="banner-shield-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div>
+                <div class="banner-title">100% Direct Owner Network</div>
+                <div class="banner-sub">Connect instantly, no fake ipsum call / mediator info revealed.</div>
+              </div>
+            </div>
+            <div class="zero-brokerage-chip">
+              ZERO<br>BROKERAGE
+            </div>
+          </div>
+
+          <!-- Verified Nearby (Within 1.5 km) Horizontal Slider -->
+          <div class="section-header-row">
+            <div class="section-title">
+              <span>⚡ Verified Nearby (Within 1.5 km)</span>
+            </div>
+            <span class="live-radar-tag">Live Radar</span>
+          </div>
+
+          <div class="horizontal-card-scroll">
+            <!-- Mini Card 1 -->
+            <div class="nearby-mini-card">
+              <div class="card-img-header">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80" alt="Verified Owner Flat">
+                <div class="card-floating-badge">
+                  <span>★ 10 Direct Network</span>
+                </div>
+                <div class="card-floating-price">₹25,000 /mo</div>
+              </div>
+              <div class="card-body-mini">
+                <div class="card-title-mini">2BHK Semi-Furn Flat - 100ft Rd</div>
+                <div class="card-loc-mini">📍 Indiranagar Defense Colony</div>
+                <div class="card-specs-row">1,150 sq.ft • Semi-Furnished • 0 Brokerage</div>
+                <div class="card-footer-buttons">
+                  <div class="owner-chip">
+                    <div class="owner-avatar-sm">RS</div>
+                    <span>Registered Owner</span>
+                  </div>
+                  <div class="mini-action-btns">
+                    <button class="btn-mini-contact whatsapp" onclick="contactOwnerWhatsApp('Rohit Sharma', '+91 98451 00291')">
+                      WhatsApp
+                    </button>
+                    <button class="btn-mini-contact call" onclick="contactOwnerCall('Rohit Sharma', '+91 98451 00291')">
+                      Call
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mini Card 2 -->
+            <div class="nearby-mini-card">
+              <div class="card-img-header">
+                <img src="assets/cadastral_plot.jpg" alt="1,200 sq.ft Plot">
+                <div class="card-floating-badge" style="background:#065F46;">
+                  <span>✓ BDA Clear Title</span>
+                </div>
+                <div class="card-floating-price">₹2.45 Cr</div>
+              </div>
+              <div class="card-body-mini">
+                <div class="card-title-mini">1,200 sq.ft BDA Corner Plot</div>
+                <div class="card-loc-mini">📍 12th Main Road, Indiranagar</div>
+                <div class="card-specs-row">30x40 ft • East Facing • 40ft Frontage</div>
+                <div class="card-footer-buttons">
+                  <div class="owner-chip">
+                    <div class="owner-avatar-sm" style="background:#FEF3C7; color:#B45309;">MR</div>
+                    <span>Direct Owner</span>
+                  </div>
+                  <div class="mini-action-btns">
+                    <button class="btn-mini-contact whatsapp" onclick="contactOwnerWhatsApp('Meera Reddy', '+91 98452 44102')">
+                      WhatsApp
+                    </button>
+                    <button class="btn-mini-contact call" onclick="contactOwnerCall('Meera Reddy', '+91 98452 44102')">
+                      Call
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Explore Categories Grid (Exact Match to Image 1) -->
+          <div class="categories-section">
+            <div class="section-header-row" style="padding-left:0; padding-right:0;">
+              <div class="section-title">Explore Categories</div>
+              <span class="section-link" onclick="showToast('Showing all 6 verified categories')">All verified</span>
+            </div>
+            <div class="categories-grid">
+              <div class="category-card-btn" onclick="showToast('Filtered: Houses & Villas For Sale')">
+                <div class="category-icon-box cat-icon-1">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                </div>
+                <div class="category-name">Houses &amp; Villas</div>
+                <div class="category-subtext">For Sale</div>
+              </div>
+
+              <div class="category-card-btn" onclick="showToast('Filtered: Flats & Apartments')">
+                <div class="category-icon-box cat-icon-2">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="22" x2="9" y2="2"/><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01M8 18h.01M16 18h.01"/></svg>
+                </div>
+                <div class="category-name">Flats &amp; Apts</div>
+                <div class="category-subtext">For Sale</div>
+              </div>
+
+              <div class="category-card-btn" onclick="showToast('Filtered: Plots & Land')">
+                <div class="category-icon-box cat-icon-3">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 22 22 22"/></svg>
+                </div>
+                <div class="category-name">Plots &amp; Land</div>
+                <div class="category-subtext">BDA approved</div>
+              </div>
+
+              <div class="category-card-btn" onclick="showToast('Filtered: To-Let Family Flats')">
+                <div class="category-icon-box cat-icon-4">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                </div>
+                <div class="category-name">To-Let Flats</div>
+                <div class="category-subtext">Rent / Family</div>
+              </div>
+
+              <div class="category-card-btn" onclick="showToast('Filtered: PG & Coliving Spaces')">
+                <div class="category-icon-box cat-icon-5">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9"/></svg>
+                </div>
+                <div class="category-name">PG &amp; Coliving</div>
+                <div class="category-subtext">Men &amp; Women</div>
+              </div>
+
+              <div class="category-card-btn" onclick="showToast('Filtered: Shops & Retail Commercial')">
+                <div class="category-icon-box cat-icon-6">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                </div>
+                <div class="category-name">Shops &amp; Retail</div>
+                <div class="category-subtext">Prime Roads</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Direct Owner Sales (Exact Match to Image 1: Greenwood Estate) -->
+          <div class="feed-section">
+            <div class="section-header-row" style="padding:0;">
+              <div>
+                <div class="section-title">🏡 Direct Owner Sales</div>
+                <div style="font-size:0.7rem; color:#64748B;">Houses, Luxury Flats &amp; Independent Land by Owners</div>
+              </div>
+              <span class="section-link" onclick="showToast('Loading full owner inventory...')">See all ➔</span>
+            </div>
+
+            <!-- Luxury Card 1: Greenwood Estate, Defense Colony -->
+            <div class="property-hero-card">
+              <div class="hero-card-img-wrap">
+                <img src="assets/greenwood_penthouse.jpg" alt="Greenwood Estate Luxury Villa">
+                <div class="hero-badge-row">
+                  <div class="badge-tag-pills">
+                    <span class="pill-cadastral">✓ Cadastral Cleared</span>
+                    <span class="pill-owner-sale">Direct Owner Sale</span>
+                  </div>
+                  <button class="card-save-btn" onclick="showToast('❤️ Saved to your Favorites list!')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                  </button>
+                </div>
+                <div class="hero-bottom-tag">4 BHK Independent Luxury Villa</div>
+              </div>
+
+              <div class="hero-card-content">
+                <div class="card-header-price-row">
+                  <div>
+                    <h3 class="card-main-title">Greenwood Estate, Defense Col...</h3>
+                    <div class="card-main-address">📍 Indiranagar 100ft Road Corridor, Bengaluru</div>
+                  </div>
+                  <div class="card-price-block">
+                    <div class="card-price-large">₹3.85 Cr</div>
+                    <div class="card-price-per-sqft">₹11,600 / sq.ft</div>
+                  </div>
+                </div>
+
+                <!-- Specs 3-Grid -->
+                <div class="property-specs-grid">
+                  <div class="spec-cell">
+                    <span class="spec-title">BUILT-UP AREA</span>
+                    <span class="spec-val">3,320 sq.ft</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-title">PLOT SIZE</span>
+                    <span class="spec-val">40 x 60 ft</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-title">FACING / STATUS</span>
+                    <span class="spec-val">East • Ready</span>
+                  </div>
+                </div>
+
+                <div class="card-action-footer">
+                  <div class="owner-info-left">
+                    <div class="owner-initials-badge">SV</div>
+                    <div>
+                      <div class="owner-name">Suresh Vardhan</div>
+                      <div class="owner-status">Registered Owner • 2 Listings</div>
+                    </div>
+                  </div>
+                  <div class="action-buttons-group">
+                    <button class="btn-whatsapp-action" onclick="contactOwnerWhatsApp('Suresh Vardhan', '+91 98450 11200')">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                      WhatsApp
+                    </button>
+                    <button class="btn-call-action" onclick="contactOwnerCall('Suresh Vardhan', '+91 98450 11200')">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      Call
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rentals & PGs / Coliving (Image 1: Zolo Haven) -->
+            <div class="section-header-row" style="padding: 10px 0 0;">
+              <div>
+                <div class="section-title">🏢 Rentals &amp; PGs / Coliving</div>
+                <div style="font-size:0.7rem; color:#64748B;">For bachelors, students, working heralds &amp; families</div>
+              </div>
+              <span class="section-link" onclick="showToast('Exploring 1.4k+ rental options')">Explore 1.4k+ ➔</span>
+            </div>
+
+            <div class="property-hero-card">
+              <div class="hero-card-img-wrap">
+                <img src="assets/zolo_coliving.jpg" alt="Zolo Haven Luxury Coliving">
+                <div class="hero-badge-row">
+                  <div class="badge-tag-pills">
+                    <span class="pill-cadastral" style="background:#0284C7;">Men &amp; Women Coliving</span>
+                    <span class="pill-owner-sale" style="background:#065F46;">0 Brokerage Rental</span>
+                  </div>
+                  <button class="card-save-btn" onclick="showToast('❤️ Saved Zolo Coliving to favorites!')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                  </button>
+                </div>
+                <div class="hero-bottom-tag">Private &amp; Twin Sharing Suites</div>
+              </div>
+
+              <div class="hero-card-content">
+                <div class="card-header-price-row">
+                  <div>
+                    <h3 class="card-main-title">Zolo Haven Luxury Coliving &amp; PG</h3>
+                    <div class="card-main-address">📍 5th Main, 100ft Road, Indiranagar</div>
+                  </div>
+                  <div class="card-price-block">
+                    <div class="card-price-large">₹14,500 <span style="font-size:0.78rem; font-weight:600; color:#64748B;">/mo</span></div>
+                    <div class="card-price-per-sqft">Deposit: ₹30,000</div>
+                  </div>
+                </div>
+
+                <div class="property-specs-grid">
+                  <div class="spec-cell">
+                    <span class="spec-title">ROOM TYPES</span>
+                    <span class="spec-val">1 / 2 Sharing</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-title">FOOD &amp; WIFI</span>
+                    <span class="spec-val">Complimentary</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-title">LOCK-IN</span>
+                    <span class="spec-val">1 Month Only</span>
+                  </div>
+                </div>
+
+                <div class="card-action-footer">
+                  <div class="owner-info-left">
+                    <div class="owner-initials-badge" style="background:#F3E8FF; color:#7E22CE;">ZH</div>
+                    <div>
+                      <div class="owner-name">Zolo Direct Caretaker</div>
+                      <div class="owner-status">100% Zero Brokerage Verified</div>
+                    </div>
+                  </div>
+                  <div class="action-buttons-group">
+                    <button class="btn-whatsapp-action" onclick="contactOwnerWhatsApp('Zolo Caretaker', '+91 99000 88711')">
+                      WhatsApp
+                    </button>
+                    <button class="btn-book-visit" onclick="bookSiteVisit('Zolo Haven Luxury Coliving')">
+                      Book Visit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Commercial Plots & Retail (Image 1) -->
+            <div class="section-header-row" style="padding: 10px 0 0;">
+              <div>
+                <div class="section-title">📐 Commercial Plots &amp; Retail</div>
+                <div style="font-size:0.7rem; color:#64748B;">Senior clear titles, BDA approved &amp; high-road frontage</div>
+              </div>
+              <span class="section-link" onclick="showToast('Displaying commercial corridor listings')">View all ➔</span>
+            </div>
+
+            <div class="property-hero-card">
+              <div class="hero-card-img-wrap">
+                <img src="assets/cadastral_plot.jpg" alt="12,500 sq.ft Industrial Plot">
+                <div class="hero-badge-row">
+                  <div class="badge-tag-pills">
+                    <span class="pill-cadastral" style="background:#B45309;">BDA Approved</span>
+                  </div>
+                </div>
+                <div class="hero-bottom-tag">₹7,848 / sq.ft</div>
+              </div>
+
+              <div class="hero-card-content">
+                <div class="card-header-price-row">
+                  <div>
+                    <h3 class="card-main-title">12,500 sq.ft Industrial Land</h3>
+                    <div class="card-main-address">📍 Hosur Main Rd, Bommasandra, Bengaluru</div>
+                  </div>
+                  <div class="card-price-block">
+                    <div class="card-price-large">₹9.81 Cr</div>
+                    <div class="card-price-per-sqft">Nodal Title Verified</div>
+                  </div>
+                </div>
+
+                <div class="property-specs-grid">
+                  <div class="spec-cell">
+                    <span class="spec-title">FRONTAGE</span>
+                    <span class="spec-val">60 ft Wide</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-title">APPROACH</span>
+                    <span class="spec-val">80 ft Road</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-title">ZONING</span>
+                    <span class="spec-val">Hi-Tech Light</span>
+                  </div>
+                </div>
+
+                <div class="card-action-footer">
+                  <div class="owner-info-left">
+                    <div class="owner-initials-badge">BL</div>
+                    <div>
+                      <div class="owner-name">BDA Direct Mandate</div>
+                      <div class="owner-status">Clear Encumbrance 30-Yrs</div>
+                    </div>
+                  </div>
+                  <button class="btn-call-action" onclick="contactOwnerCall('Land Officer', '+91 80 2345 6789')">
+                    Contact Owner
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             VIEW 2: LEGAL CONCIERGE LIVE DESK & INQUIRIES (Images 2 & 3)
+             ==================================================================== -->
+        <section class="app-screen-view" id="view-concierge" style="display: none;">
+          
+          <!-- Hero Concierge Banner -->
+          <div class="concierge-hero-banner">
+            <div class="concierge-status-row">
+              <div class="badge-live-desk">
+                <span class="pulse-dot"></span>
+                <span>Concierge Live Desk</span>
+              </div>
+              <div class="badge-wait-timer">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>&lt;2m avg wait</span>
+              </div>
+            </div>
+
+            <h2 class="concierge-heading">How can our RERA legal team &amp; surveyors assist you today?</h2>
+            <p class="concierge-subtext">Govt-certified advocates &amp; senior field cadastral surveyors actively on duty.</p>
+
+            <div class="concierge-search-bar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="concierge-search-input" placeholder="Search RERA rules, survey slot, e-Khata...">
+              <div class="concierge-action-icons">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor:pointer;" onclick="showToast('🎤 Voice assistant activated: Speak your RERA query...')"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor:pointer;" onclick="showToast('Filters: RERA Judgments, Sub-Registrar, Cadastral Maps')"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Instant Escalations 4-Grid (Images 2 & 3) -->
+          <div class="section-header-row">
+            <div class="section-title">⚡ INSTANT ESCALATIONS</div>
+            <span class="live-radar-tag" style="background:#EEF2FF; color:var(--primary); border-color:#C7D2FE;">✓ RERA Protected</span>
+          </div>
+
+          <div class="instant-escalations-grid">
+            <!-- 1: Call Legal Desk -->
+            <div class="escalation-card purple-desk" onclick="triggerCallLegalDesk()">
+              <div class="escalation-top-row">
+                <div class="escalation-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14 13 5 5-1.5 1.5-5-5"/><path d="m3 3 3 3"/><path d="m9 9 3 3"/><path d="m6 18 12-12"/></svg>
+                </div>
+                <span class="tag-badge-free">Free 15m</span>
+              </div>
+              <div class="escalation-title">Call Legal Desk</div>
+              <div class="escalation-sub">Direct Advocate Dial</div>
+            </div>
+
+            <!-- 2: WhatsApp Chat -->
+            <div class="escalation-card chat-desk" onclick="showToast('Connecting directly with Senior RERA Advocate on WhatsApp...')">
+              <div class="escalation-top-row">
+                <div class="escalation-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                </div>
+                <span class="tag-badge-active">Active</span>
+              </div>
+              <div class="escalation-title">WhatsApp Chat</div>
+              <div class="escalation-sub">Instant Verified Desk</div>
+            </div>
+
+            <!-- 3: Token Dispute -->
+            <div class="escalation-card token-dispute" onclick="triggerTokenDispute()">
+              <div class="escalation-top-row">
+                <div class="escalation-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <span class="tag-badge-escrow">Escrow</span>
+              </div>
+              <div class="escalation-title">Token Dispute</div>
+              <div class="escalation-sub">Refund &amp; Hold Lock</div>
+            </div>
+
+            <!-- 4: Drone Survey -->
+            <div class="escalation-card drone-survey" onclick="triggerDroneSurvey()">
+              <div class="escalation-top-row">
+                <div class="escalation-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </div>
+                <span class="tag-badge-cadastral">Cadastral</span>
+              </div>
+              <div class="escalation-title">Drone Survey</div>
+              <div class="escalation-sub">Reschedule / Modify</div>
+            </div>
+          </div>
+
+          <!-- Active Inquiries (Image 2) -->
+          <div class="section-header-row">
+            <div class="section-title">
+              <span>📋 ACTIVE INQUIRIES</span>
+              <span class="id-badge" style="background:#7E22CE; color:white;">2 Open</span>
+            </div>
+            <span class="section-link" onclick="showToast('History contains 14 completed title searches & drone boundaries')">View History ➔</span>
+          </div>
+
+          <div class="inquiries-container" id="activeInquiriesList">
+            <!-- Dynamically populated from AppState.inquiries -->
+          </div>
+
+          <!-- Explore Help Topics (5 Specialized Desks) -->
+          <div class="section-header-row">
+            <div class="section-title">🧭 EXPLORE HELP TOPICS</div>
+            <span style="font-size:0.7rem; color:#64748B;">5 Specialized Desks</span>
+          </div>
+
+          <div style="padding: 0 18px 16px; display:flex; flex-direction:column; gap:8px;">
+            <div class="accordion-item" onclick="showToast('Direct Owner Desks: Verified contact logs &amp; CCTV site checks')">
+              <div class="accordion-header">
+                <span>🏢 Direct Owner Deals &amp; Site Visits</span>
+                <span style="color:#94A3B8;">➔</span>
+              </div>
+            </div>
+            <div class="accordion-item" onclick="showToast('Cadastral Desk: GPS boundary stones &amp; revenue sketch verification')">
+              <div class="accordion-header">
+                <span>📐 Cadastral Surveys &amp; Boundary Stones</span>
+                <span style="color:#94A3B8;">➔</span>
+              </div>
+            </div>
+            <div class="accordion-item" onclick="showToast('Escrow Safety: ICICI Bank Nodal Account 100% money back rules')">
+              <div class="accordion-header">
+                <span>🛡️ Token Advance &amp; Escrow Safety</span>
+                <span style="color:#94A3B8;">➔</span>
+              </div>
+            </div>
+            <div class="accordion-item" onclick="showToast('Title Verification: Form 15, Form 16, e-Khata extract, 7/12 records')">
+              <div class="accordion-header">
+                <span>📄 Commercial Land &amp; Title Verification</span>
+                <span style="color:#94A3B8;">➔</span>
+              </div>
+            </div>
+            <div class="accordion-item" onclick="showToast('Rentals Desk: Digital rent agreement, police verification, deposit escrow')">
+              <div class="accordion-header">
+                <span>🔑 Rental, PG &amp; Security Deposits</span>
+                <span style="color:#94A3B8;">➔</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Frequently Escalated Accordion (Image 2) -->
+          <div class="section-header-row">
+            <div class="section-title">❓ FREQUENTLY ESCALATED</div>
+            <span style="font-size:0.7rem; color:#64748B;">Tap to expand</span>
+          </div>
+
+          <div style="padding: 0 18px 16px;">
+            <div class="accordion-item open">
+              <div class="accordion-header">
+                <span>What if a seller does not turn up after token payment?</span>
+                <span class="chevron-icon">▼</span>
+              </div>
+              <div class="accordion-body">
+                All tokens paid through LandPin are held strictly inside our <strong>RERA-compliant ICICI Bank Nodal Escrow Vault</strong>. Funds are never released to the seller until biometric registry and physical cadastral possession are completed. If the seller defaults or fails to show up, 100% of the token is refunded within 48 hours.
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <div class="accordion-header">
+                <span>How is my ₹5,00,000+ token advance protected?</span>
+                <span class="chevron-icon">▼</span>
+              </div>
+              <div class="accordion-body">
+                LandPin Escrow operates under Section 4(2)(l)(D) of the Real Estate Regulation Act. Each deposit requires three cryptographic authorizations: Buyer Consent, Advocate Title Clearance, and Escrow Trustee sign-off.
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <div class="accordion-header">
+                <span>How do I contest plot boundary discrepancies?</span>
+                <span class="chevron-icon">▼</span>
+              </div>
+              <div class="accordion-body">
+                You can trigger an on-demand Cadastral Drone Survey through our Concierge Desk. A senior survey engineer will physically visit the site with RTK-GPS equipment to map boundary stones against official Karnataka Bhoomi revenue records.
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <div class="accordion-header">
+                <span>Can I request an in-person advocate for registry?</span>
+                <span class="chevron-icon">▼</span>
+              </div>
+              <div class="accordion-body">
+                Yes! LandPin provides on-site Advocate attendance at all Bangalore Sub-Registrar offices (Indiranagar, Shivajinagar, Yelahanka, Bommanahalli, etc.) for deed vetting and immediate DD clearance.
+              </div>
+            </div>
+          </div>
+
+          <!-- Priority Emergency Helpline Banner (Image 2) -->
+          <div class="emergency-helpline-card">
+            <div class="helpline-phone-row">
+              <div class="helpline-phone-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <div>
+                <div style="font-size:0.68rem; font-weight:800; color:#4F46E5; letter-spacing:0.06em; text-transform:uppercase;">Priority Emergency Helpline</div>
+                <div class="helpline-number">1800-419-PIN24</div>
+                <div class="helpline-subtext">Toll Free • Available in English, Kannada, Hindi, Telugu</div>
+              </div>
+            </div>
+
+            <div class="helpline-trust-row">
+              <span>🛡️ 100% Escrow Verified &amp; RERA Regulated</span>
+              <span class="tag-badge-free" style="background:#4F46E5;">GOVT AFFILIATED</span>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ====================================================================
+             VIEW 3: PRINCIPAL BROKER & ESCROW DESK (Image 4)
+             ==================================================================== -->
+        <section class="app-screen-view" id="view-escrow" style="display: none;">
+
+          <!-- Top Broker/Admin Subheader -->
+          <div class="escrow-top-banner">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="id-badge" style="background:#7E22CE; color:white;">PRINCIPAL BROKER • Live</span>
+              <span style="font-weight:800; font-size:0.85rem; color:#0F172A;">Escrow Desk</span>
+            </div>
+            <div class="trustee-badge">TRUSTEE MODE</div>
+          </div>
+
+          <!-- Alert Marquee -->
+          <div class="escrow-alert-marquee">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span><strong>ALERT:</strong> Escrow locked for Plot #442 — Deed awaiting Title Audit...</span>
+          </div>
+
+          <div style="padding: 10px 18px 0;">
+            <div style="background:#ECFDF5; border:1px solid #A7F3D0; border-radius:8px; padding:6px 12px; font-size:0.75rem; color:#065F46; font-weight:700; display:flex; justify-content:space-between; align-items:center;">
+              <span>🛡️ ICICI Bank Nodal A/c #9940-281-RERA</span>
+              <span style="color:#059669;">● Active Feed</span>
+            </div>
+          </div>
+
+          <!-- Total Escrow Vault Card (Image 4) -->
+          <div class="escrow-vault-card">
+            <div class="vault-top-row">
+              <span class="vault-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                TOTAL ESCROW VAULT
+              </span>
+              <span class="vault-insured-badge">● 100% Insured</span>
+            </div>
+
+            <div class="vault-amount-row">
+              <div>
+                <div class="vault-amount">₹1.45 <span style="font-size:1.2rem; font-weight:700; color:#475569;">Cr</span></div>
+                <div style="font-size:0.72rem; color:#64748B;">Held in RERA-compliant nodal escrow pool</div>
+              </div>
+              <div class="vault-growth">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <span>+12.4% vs last mo</span>
+              </div>
+            </div>
+
+            <!-- Submetrics Grid -->
+            <div class="vault-submetrics-grid">
+              <div class="submetric-box">
+                <span class="submetric-label">💵 BROKERAGE MTD</span>
+                <span class="submetric-val" style="color:#4F46E5;">₹14.80 Lakhs</span>
+                <span class="submetric-note">1% direct fee on registry</span>
+              </div>
+              <div class="submetric-box">
+                <span class="submetric-label" style="color:#DC2626;">⚖️ IN ARBITRATION</span>
+                <span class="submetric-val" style="color:#DC2626;">₹5,00,000</span>
+                <span class="submetric-note">1 active token claim</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Emergency Legal Standby Switch Card -->
+          <div class="standby-toggle-card">
+            <div class="standby-info">
+              <div class="standby-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div>
+                <div class="standby-title">Emergency Legal Concierge ●</div>
+                <div class="standby-sub">Adv. Ananya K. on legal duty standby</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" checked id="conciergeStandbyToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Escrow Holding Ledger (Image 4) -->
+          <div class="section-header-row">
+            <div class="section-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>ESCROW HOLDING LEDGER</span>
+            </div>
+            <span class="section-link" onclick="showToast('Refreshing live feeds...')">Live Feeds (3)</span>
+          </div>
+
+          <div class="escrow-ledger-list" id="escrowLedgerList">
+            <!-- Dynamically populated from AppState.escrowItems -->
+          </div>
+
+          <!-- Neutral Arbitration Desk (Image 4) -->
+          <div class="section-header-row">
+            <div class="section-title" style="color:#DC2626;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>NEUTRAL ARBITRATION DESK</span>
+            </div>
+            <span class="id-badge" style="background:#FEE2E2; color:#DC2626;">1 Active Action</span>
+          </div>
+
+          <div style="padding: 0 18px 24px;">
+            <div class="escrow-card" style="border: 1.5px solid #FECACA;">
+              <div class="escrow-card-top">
+                <div>
+                  <span class="id-badge" style="background:#FEE2E2; color:#DC2626;">#DISP-084</span>
+                  <span class="tag-badge-escrow">Survey Discrepancy</span>
+                  <div class="escrow-deal-title" style="margin-top:6px;">Token Refund: Survey Stone Shift</div>
+                  <div style="font-size:0.75rem; color:#64748B;">Dispute logged between Buyer &amp; Seller regarding 2.4ft boundary stone alignment.</div>
+                </div>
+                <div class="escrow-deal-amount" style="color:#DC2626;">₹5,00,000</div>
+              </div>
+              <div class="escrow-action-row" style="margin-top:10px;">
+                <button class="btn-legal-hold" style="background:#0F172A; color:white; border-color:#0F172A;" onclick="showToast('Cadastral Re-Survey order dispatched to field engineer')">
+                  Order Drone Re-Survey
+                </button>
+                <button class="btn-authorize-payout" style="background:#DC2626;" onclick="showToast('Arbitration Verdict: 100% Token Refund authorized back to Buyer nodal account.')">
+                  Execute Full Refund
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ====================================================================
+             VIEW 4: ROLE SELECTION & REGISTRATION (Image 5)
+             ==================================================================== -->
+        <section class="app-screen-view" id="view-register" style="display: none;">
+          <div class="role-selection-screen">
+            <!-- Step Progress Indicator -->
+            <div class="step-indicator-card">
+              <div class="step-title-row">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="step-pill">STEP 1 OF 2</span>
+                  <span style="font-size:0.88rem; font-weight:800; color:#0F172A;">Identity &amp; Role Selection</span>
+                </div>
+                <span class="step-percentage">50% Done</span>
+              </div>
+              <div class="stepper-bar-track" style="height:6px;">
+                <div class="stepper-bar-fill" style="width:50%;"></div>
+              </div>
+            </div>
+
+            <!-- Join Network Banner -->
+            <div class="join-network-banner">
+              <div class="join-tag-row">
+                <span class="tag-gold">★ ZERO MIDDLEMEN</span>
+                <span class="tag-cadastral">✓ CADASTRAL VERIFIED</span>
+              </div>
+              <h2 class="join-banner-title">Join LandPin Direct Network</h2>
+              <p class="join-banner-sub">Connect directly with verified owners, inspect drone survey plots, and buy or lease with zero brokerage.</p>
+            </div>
+
+            <!-- Role Selector Notice -->
+            <div>
+              <div style="font-size:0.75rem; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; display:flex; justify-content:space-between;">
+                <span>SELECT YOUR PRIMARY ROLE</span>
+                <span style="color:var(--primary);">Auto Matching</span>
+              </div>
+              <p style="font-size:0.72rem; color:#64748B;">Tailors your verified dashboard, cadastral feeds, and inquiry pipeline.</p>
+            </div>
+
+            <!-- Role Cards (Image 5) -->
+            <div class="role-cards-container">
+              <!-- Unified Account: Buyer / Tenant -->
+              <div class="selectable-role-card selected" data-reg-role="buyer_seller">
+                <div class="role-card-icon-box buyer">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                </div>
+                <div class="role-card-details">
+                  <div class="role-card-header">
+                    <span class="role-card-name">Buyer / Tenant</span>
+                    <span class="tag-badge-free" style="background:#EEF2FF; color:var(--primary);">Fast Track</span>
+                    <span class="tag-badge-free" style="background:#ECFDF5; color:#059669;">Unified with Seller</span>
+                  </div>
+                  <div class="role-card-desc">Looking for luxury villas, verified BDA plots, apartments, or PG coliving. (Allows instant switching to sell properties anytime!)</div>
+                </div>
+                <div class="role-check-indicator">✓</div>
+              </div>
+
+              <!-- Unified Account: Property Owner / Seller -->
+              <div class="selectable-role-card" data-reg-role="buyer_seller">
+                <div class="role-card-icon-box seller">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>
+                </div>
+                <div class="role-card-details">
+                  <div class="role-card-header">
+                    <span class="role-card-name">Property Owner / Seller</span>
+                    <span class="tag-badge-free" style="background:#ECFDF5; color:#059669;">0% Fee</span>
+                    <span class="tag-badge-free" style="background:#EEF2FF; color:var(--primary);">Unified with Buyer</span>
+                  </div>
+                  <div class="role-card-desc">Post residential/commercial land, manage direct buyers &amp; e-Khata validation with zero broker commissions.</div>
+                </div>
+                <div class="role-check-indicator"></div>
+              </div>
+
+              <!-- Separate Broker Account -->
+              <div class="selectable-role-card" data-reg-role="broker">
+                <div class="role-card-icon-box broker">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                </div>
+                <div class="role-card-details">
+                  <div class="role-card-header">
+                    <span class="role-card-name">Channel Partner / Broker</span>
+                    <span class="tag-badge-free" style="background:#F3E8FF; color:#7E22CE;">Multi-Inventory</span>
+                  </div>
+                  <div class="role-card-desc">Manage multi-inventory builder allocations, mandate portfolios, investor desks, and nodal escrow fee splits. (Requires separate RERA broker license).</div>
+                </div>
+                <div class="role-check-indicator"></div>
+              </div>
+
+              <!-- Location-Based Admin Account -->
+              <div class="selectable-role-card" data-reg-role="admin">
+                <div class="role-card-icon-box admin">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="role-card-details">
+                  <div class="role-card-header">
+                    <span class="role-card-name">Admin / Escrow Trustee</span>
+                    <span class="tag-badge-free" style="background:#FEF3C7; color:#B45309;">Location Jurisdiction</span>
+                  </div>
+                  <div class="role-card-desc">Audit cadastral disputes, oversee nodal escrow releases, and supervise legal concierge advocates for a designated regional zone.</div>
+                </div>
+                <div class="role-check-indicator"></div>
+              </div>
+            </div>
+
+            <!-- Role Explanation Callout -->
+            <div id="registrationRoleNotice" style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:10px 14px; font-size:0.75rem; color:#065F46;">
+              <strong>Unified Account:</strong> You get Buyer/Tenant search &amp; Property Owner direct listing capabilities in 1 unified account! No separate login required.
+            </div>
+
+            <!-- Personal Contact Details (Image 5) -->
+            <form id="landpinRegForm" class="form-details-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-size:0.84rem; font-weight:800; color:#0F172A; display:flex; align-items:center; gap:6px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  Personal &amp; Contact Details
+                </div>
+                <span class="tag-badge-free" style="background:#ECFDF5; color:#059669; border:1px solid #A7F3D0;">🔒 256-bit Encrypted</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Full Legal Name (as on PAN / Aadhaar)</label>
+                <input type="text" class="form-input-field" id="regLegalName" value="Vikramaditya Rao" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Mobile Number (with OTP verification)</label>
+                <input type="tel" class="form-input-field" value="+91 98450 49120" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Primary City / Jurisdiction</label>
+                <select class="form-input-field">
+                  <option selected>Bengaluru - Indiranagar Corridor (BLR-East)</option>
+                  <option>Bengaluru - Devanahalli Airport Corridor (BLR-North)</option>
+                  <option>Bengaluru - Koramangala &amp; HSR (BLR-South)</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn-authorize-payout" style="margin-top:8px; padding:12px; font-size:0.9rem;">
+                Proceed to Identity Verification ➔
+              </button>
+            </form>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- LandPin Fixed Bottom Mobile Navigation Bar (Images 1 & 2) -->
+      <nav class="app-bottom-nav">
+        <button class="nav-tab-btn active" data-view="explore">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          <span>Explore</span>
+        </button>
+
+        <button class="nav-tab-btn" data-view="concierge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Search / Desk</span>
+        </button>
+
+        <!-- Floating Post Ad Action -->
+        <button class="nav-post-ad-pill" id="postAdNavBtn" title="Post Free Ad (Owner/Seller Mode)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <button class="nav-tab-btn" data-view="escrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <span>Escrow</span>
+        </button>
+
+        <button class="nav-tab-btn" data-view="register">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Profile</span>
+        </button>
+      </nav>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================
+       INTERACTIVE MODALS
+       ======================================================================== -->
+
+  <!-- Modal 1: Post Ad / Seller Property Listing Modal -->
+  <div class="modal-backdrop" id="postAdModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">🏡 Post Direct Owner Property (0% Fee)</div>
+        <button class="modal-close-btn" onclick="closeModal('postAdModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:#ECFDF5; border:1px solid #A7F3D0; border-radius:8px; padding:10px 14px; font-size:0.78rem; color:#065F46;">
+          ✓ <strong>Direct Owner Guaranteed:</strong> No mediator fees or broker deduction. Your listing gets free RERA and Cadastral badge after e-Khata verification.
+        </div>
+        <div class="form-group">
+          <label class="form-label">Property Title</label>
+          <input type="text" class="form-input-field" placeholder="e.g. 3BHK Luxury Penthouse with Private Terrace" value="Prestige Silver Oak Villa, 3 BHK">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Property Category</label>
+          <select class="form-input-field">
+            <option>Houses &amp; Villas (For Sale)</option>
+            <option>Flats &amp; Apartments (For Sale)</option>
+            <option>Plots &amp; Land (BDA Approved)</option>
+            <option>To-Let Flats (Rental / Family)</option>
+          </select>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="form-group">
+            <label class="form-label">Expected Price / Rent (₹)</label>
+            <input type="text" class="form-input-field" value="₹2.25 Cr">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Built-Up Area</label>
+            <input type="text" class="form-input-field" value="2,400 sq.ft">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Upload e-Khata or Title Deed (PDF / Image)</label>
+          <div style="border:2px dashed #CBD5E1; border-radius:8px; padding:20px; text-align:center; color:#64748B; font-size:0.8rem; cursor:pointer;" onclick="showToast('📁 File picker opened: Select e-Khata / Title deed')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div style="margin-top:6px; font-weight:700;">Click to upload e-Khata certificate</div>
+            <div style="font-size:0.7rem;">Automated title check runs within 60 minutes</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-mini-contact" onclick="closeModal('postAdModal')">Cancel</button>
+        <button class="btn-authorize-payout" onclick="closeModal('postAdModal'); showToast('🎉 Property listed successfully! Added to Direct Owner Sales feed.');">
+          Publish Direct Owner Listing
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Book Site Visit -->
+  <div class="modal-backdrop" id="siteVisitModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">📅 Schedule Direct Site Visit</div>
+        <button class="modal-close-btn" onclick="closeModal('siteVisitModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:#475569;">Property: <strong id="siteVisitPropertyName">Property</strong></p>
+        <div class="form-group">
+          <label class="form-label">Preferred Date</label>
+          <input type="date" class="form-input-field" value="2026-10-20">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Time Slot</label>
+          <select class="form-input-field">
+            <option>Morning (10:00 AM - 12:00 PM)</option>
+            <option selected>Afternoon (03:00 PM - 05:00 PM)</option>
+            <option>Evening (05:00 PM - 07:00 PM)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cadastral Escrow Inspection Support</label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:#334155;">
+            <input type="checkbox" checked>
+            Include RERA Field Surveyor to verify boundary stones during visit (Free)
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-mini-contact" onclick="closeModal('siteVisitModal')">Cancel</button>
+        <button class="btn-authorize-payout" onclick="closeModal('siteVisitModal'); showToast('✅ Site Visit Confirmed! Direct Owner & Field Surveyor notified.');">
+          Confirm Appointment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Call Legal Desk Modal -->
+  <div class="modal-backdrop" id="callLegalModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">⚖️ RERA Advocate Live Dial (Free 15m)</div>
+        <button class="modal-close-btn" onclick="closeModal('callLegalModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; align-items:center; gap:12px; background:#EEF2FF; padding:12px; border-radius:10px;">
+          <div class="officer-avatar" style="width:40px; height:40px; font-size:0.9rem;">AK</div>
+          <div>
+            <div style="font-weight:800; font-size:0.88rem; color:#0F172A;">Adv. Ananya K.</div>
+            <div style="font-size:0.75rem; color:#4F46E5;">Senior Real Estate &amp; RERA Advocate • Active Standby</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Select Legal Subject</label>
+          <select class="form-input-field">
+            <option>Encumbrance Certificate &amp; Title Verification</option>
+            <option>Sale Agreement &amp; Token Escrow Safety</option>
+            <option>Sub-Registrar Slot &amp; Stamp Duty calculation</option>
+            <option>Khata Transfer &amp; Property Tax dispute</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-mini-contact" onclick="closeModal('callLegalModal')">Cancel</button>
+        <button class="btn-authorize-payout" onclick="closeModal('callLegalModal'); showToast('📞 Connecting you directly to Adv. Ananya K. via secure line...');">
+          Start 15m Free Call Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Drone Survey Booking -->
+  <div class="modal-backdrop" id="droneSurveyModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">🛰️ On-Demand Cadastral Drone Survey</div>
+        <button class="modal-close-btn" onclick="closeModal('droneSurveyModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.82rem; color:#475569;">High-precision RTK drone orthomosaic mapping of plot boundaries with millimeter accuracy against Karnataka Bhoomi revenue survey records.</p>
+        <div class="form-group">
+          <label class="form-label">Survey Number &amp; Village / Hobli</label>
+          <input type="text" class="form-input-field" placeholder="e.g. Sy. No 44/2, Devanahalli Hobli" value="Sy. No 89/1, Indiranagar">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Completion</label>
+          <select class="form-input-field">
+            <option>Express Same-Day Flight (Within 4 hours)</option>
+            <option>Scheduled Next-Day Slot</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-mini-contact" onclick="closeModal('droneSurveyModal')">Cancel</button>
+        <button class="btn-authorize-payout" onclick="closeModal('droneSurveyModal'); showToast('🛰️ Drone Survey Booked! Pilot Rajesh Sw... assigned to Sy. No 89/1.');">
+          Deploy Cadastral Drone
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Token Dispute -->
+  <div class="modal-backdrop" id="tokenDisputeModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" style="color:#DC2626;">🚨 Token Escrow Dispute &amp; Hold Lock</div>
+        <button class="modal-close-btn" onclick="closeModal('tokenDisputeModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:#FEE2E2; border:1px solid #FECACA; border-radius:8px; padding:10px 14px; font-size:0.78rem; color:#DC2626;">
+          ⚠️ Invoking this holds all token transfers in the ICICI Nodal Vault immediately. A neutral RERA arbitrator will inspect evidence within 24 hours.
+        </div>
+        <div class="form-group">
+          <label class="form-label">Select Active Escrow Transaction</label>
+          <select class="form-input-field">
+            <option>#ESC-8921: Greenwood Penthouse (₹5,00,000)</option>
+            <option>#ESC-8924: Devanahalli Industrial (₹12,00,000)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dispute Reason</label>
+          <select class="form-input-field">
+            <option>Survey stone misalignment / plot boundary mismatch</option>
+            <option>Seller failed to provide 30-year non-encumbrance certificate</option>
+            <option>Sub-registrar biometric slot postponed without consent</option>
+            <option>Material misrepresentation of built-up area</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-mini-contact" onclick="closeModal('tokenDisputeModal')">Cancel</button>
+        <button class="btn-legal-hold" onclick="closeModal('tokenDisputeModal'); triggerLegalHold('#ESC-8921');">
+          Lock Funds Under Legal Hold
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Location Picker Modal -->
+  <div class="modal-backdrop" id="locationPickerModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">📍 Select Bangalore Real Estate Zone</div>
+        <button class="modal-close-btn" onclick="closeModal('locationPickerModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div class="selectable-role-card selected" onclick="setLocation('Indiranagar, BLR', 'Indiranagar, 100ft Rd, BLR')">
+            <div style="font-weight:800; font-size:0.85rem;">Indiranagar (BLR East)</div>
+            <div style="font-size:0.75rem; color:#64748B;">Defense Colony, 100ft Road, 12th Main Corridor</div>
+          </div>
+          <div class="selectable-role-card" onclick="setLocation('Devanahalli, BLR', 'Devanahalli Airport Corridor, BLR')">
+            <div style="font-weight:800; font-size:0.85rem;">Devanahalli (BLR North)</div>
+            <div style="font-size:0.75rem; color:#64748B;">KIADB IT Park, Plotted developments, Industrial layout</div>
+          </div>
+          <div class="selectable-role-card" onclick="setLocation('Whitefield, BLR', 'Whitefield EPIP Zone, BLR')">
+            <div style="font-weight:800; font-size:0.85rem;">Whitefield (BLR East)</div>
+            <div style="font-size:0.75rem; color:#64748B;">Gated luxury villas, IT corridors, Metro connectivity</div>
+          </div>
+          <div class="selectable-role-card" onclick="setLocation('Koramangala, BLR', 'Koramangala 4th Block, BLR')">
+            <div style="font-weight:800; font-size:0.85rem;">Koramangala &amp; HSR (BLR South)</div>
+            <div style="font-size:0.75rem; color:#64748B;">Startup hubs, luxury apartments, premium coliving</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-mini-contact" onclick="closeModal('locationPickerModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    function setLocation(label, fullText) {
+      document.getElementById('headerLocationLabel').textContent = label;
+      document.getElementById('exploreSearchInput').value = fullText;
+      closeModal('locationPickerModal');
+      showToast('Switched neighborhood to: ' + label);
+    }
+  </script>
+</body>
+</html>
