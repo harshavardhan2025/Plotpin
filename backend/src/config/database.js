@@ -152,12 +152,22 @@ class SupabaseDatabaseStore {
 
           const validEmails = new Set(syncedUsers.map(u => (u.email || '').toLowerCase()));
           const initialMap = new Map(initialUsers.map(u => [u.email.toLowerCase(), u]));
+          const syncedIds = new Set(syncedUsers.map(u => u._id));
+          const localOnly = this.users.filter(u => {
+            const id = u._id || u.id;
+            return !syncedIds.has(id) && !initialUsers.some(iu => iu._id === id);
+          });
 
-          // In-memory users = initial system users + active users in public.users
+          // In-memory users = initial system users + active users in public.users + unsynced local users
           this.users = [...initialUsers];
           for (const su of syncedUsers) {
             if (!initialMap.has((su.email || '').toLowerCase())) {
               this.users.push(su);
+            }
+          }
+          for (const lu of localOnly) {
+            if (!this.users.some(u => (u._id === (lu._id || lu.id) || u.id === (lu._id || lu.id)))) {
+              this.users.push(lu);
             }
           }
 
@@ -199,7 +209,7 @@ class SupabaseDatabaseStore {
 
         if (inqsRes.status === 'fulfilled' && !inqsRes.value.error && inqsRes.value.data?.length > 0) {
           const dbInqs = inqsRes.value.data;
-          this.inquiries = dbInqs.map(i => ({
+          const syncedInqs = dbInqs.map(i => ({
             _id: i.id,
             propertyId: i.property_id,
             buyerId: i.buyer_id,
@@ -207,11 +217,14 @@ class SupabaseDatabaseStore {
             status: i.status || 'open',
             createdAt: new Date(i.created_at)
           }));
+          const syncedIds = new Set(syncedInqs.map(i => i._id));
+          const unsyncedLocal = this.inquiries.filter(i => !syncedIds.has(i._id));
+          this.inquiries = [...unsyncedLocal, ...syncedInqs];
         }
 
         if (tktsRes.status === 'fulfilled' && !tktsRes.value.error && tktsRes.value.data?.length > 0) {
           const dbTickets = tktsRes.value.data;
-          this.supportTickets = dbTickets.map(t => ({
+          const syncedTickets = dbTickets.map(t => ({
             _id: t.id,
             userId: t.user_id,
             subject: t.subject,
@@ -224,6 +237,9 @@ class SupabaseDatabaseStore {
             adminReply: t.admin_reply,
             createdAt: new Date(t.created_at)
           }));
+          const syncedIds = new Set(syncedTickets.map(t => t._id));
+          const unsyncedLocal = this.supportTickets.filter(t => !syncedIds.has(t._id));
+          this.supportTickets = [...unsyncedLocal, ...syncedTickets];
         }
 
         if (logsRes.status === 'fulfilled' && !logsRes.value.error && logsRes.value.data?.length > 0) {

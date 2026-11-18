@@ -46,6 +46,33 @@ async function authenticate(req, res, next) {
           if (user) {
             user.auth_id = authUser.id;
             await db.updateUser(user._id, { auth_id: authUser.id });
+          } else {
+            // Check Supabase PostgreSQL database if not currently in memory
+            try {
+              const { data: dbUser } = await supabase
+                .from('users')
+                .select('*')
+                .or(`auth_id.eq.${authUser.id},email.eq.${cleanEmail}`)
+                .maybeSingle();
+              if (dbUser) {
+                user = {
+                  _id: dbUser.id,
+                  auth_id: dbUser.auth_id || authUser.id,
+                  name: dbUser.name,
+                  email: dbUser.email,
+                  emailVerified: Boolean(dbUser.email_verified),
+                  mobile: dbUser.mobile,
+                  mobileVerified: Boolean(dbUser.mobile_verified),
+                  accountStatus: dbUser.account_status,
+                  roles: dbUser.roles || ['user', 'buyer', 'seller'],
+                  activeMode: dbUser.active_mode || 'buyer',
+                  preferences: dbUser.preferences,
+                  createdAt: new Date(dbUser.created_at),
+                  updatedAt: new Date(dbUser.updated_at)
+                };
+                db.users.push(user);
+              }
+            } catch (e) {}
           }
         }
       }
@@ -55,10 +82,35 @@ async function authenticate(req, res, next) {
 
     // 2. Fallback to Legacy LandPin Application JWT Verification
     if (!user) {
+      let legacyUserId = null;
+      let decoded = null;
       try {
-        const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
-        const userId = decoded.userId || decoded.sub || decoded.id || decoded._id;
-        user = db.users.find(u => (u._id === userId || u.id === userId));
+        decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
+        legacyUserId = decoded.userId || decoded.sub || decoded.id || decoded._id;
+        user = db.users.find(u => (u._id === legacyUserId || u.id === legacyUserId));
+        if (!user && legacyUserId) {
+          try {
+            const { data: dbUser } = await supabase.from('users').select('*').eq('id', legacyUserId).maybeSingle();
+            if (dbUser) {
+              user = {
+                _id: dbUser.id,
+                auth_id: dbUser.auth_id,
+                name: dbUser.name,
+                email: dbUser.email,
+                emailVerified: Boolean(dbUser.email_verified),
+                mobile: dbUser.mobile,
+                mobileVerified: Boolean(dbUser.mobile_verified),
+                accountStatus: dbUser.account_status,
+                roles: dbUser.roles || ['user', 'buyer', 'seller'],
+                activeMode: dbUser.active_mode || 'buyer',
+                preferences: dbUser.preferences,
+                createdAt: new Date(dbUser.created_at),
+                updatedAt: new Date(dbUser.updated_at)
+              };
+              db.users.push(user);
+            }
+          } catch {}
+        }
       } catch (err) {
         return res.status(401).json({
           error: "Invalid, expired, or malformed authentication token",
@@ -115,6 +167,29 @@ async function optionalAuthenticate(req, res, next) {
       const { data, error: sbError } = await supabase.auth.getUser(token);
       if (!sbError && data && data.user) {
         user = db.users.find(u => u.auth_id === data.user.id || (u.email && u.email.toLowerCase().trim() === data.user.email?.toLowerCase().trim()));
+        if (!user && data.user.email) {
+          try {
+            const { data: dbUser } = await supabase.from('users').select('*').or(`auth_id.eq.${data.user.id},email.eq.${data.user.email.toLowerCase().trim()}`).maybeSingle();
+            if (dbUser) {
+              user = {
+                _id: dbUser.id,
+                auth_id: dbUser.auth_id || data.user.id,
+                name: dbUser.name,
+                email: dbUser.email,
+                emailVerified: Boolean(dbUser.email_verified),
+                mobile: dbUser.mobile,
+                mobileVerified: Boolean(dbUser.mobile_verified),
+                accountStatus: dbUser.account_status,
+                roles: dbUser.roles || ['user', 'buyer', 'seller'],
+                activeMode: dbUser.active_mode || 'buyer',
+                preferences: dbUser.preferences,
+                createdAt: new Date(dbUser.created_at),
+                updatedAt: new Date(dbUser.updated_at)
+              };
+              db.users.push(user);
+            }
+          } catch {}
+        }
       }
     } catch {
       // Ignore

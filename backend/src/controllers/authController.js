@@ -246,7 +246,7 @@ exports.register = async (req, res, next) => {
 
     // 5. Verification Invariant Check
     if (otp) {
-      const cleanOtp = String(otp).trim();
+      const cleanOtp = String(otp || '').replace(/\D/g, '');
       const consumed = otpService.consumeEmailOtp({
         email: rawEmail,
         otp: cleanOtp,
@@ -255,11 +255,14 @@ exports.register = async (req, res, next) => {
       if (consumed && consumed.success) {
         registrationRecoveryService.markEmailVerified(rawEmail);
       } else {
-        return res.status(400).json({
-          error: consumed?.error || "Invalid or expired verification code",
-          code: consumed?.code || "INVALID_OTP",
-          verified: false
-        });
+        const alreadyVerified = registrationRecoveryService.isFreshlyVerifiedInSession(rawEmail);
+        if (!alreadyVerified) {
+          return res.status(400).json({
+            error: consumed?.error || "Invalid or expired verification code",
+            code: consumed?.code || "INVALID_OTP",
+            verified: false
+          });
+        }
       }
     }
 
@@ -707,9 +710,10 @@ exports.resetPassword = async (req, res, next) => {
 
     // 2. STRICT INVARIANT: Validate and consume single-use password_reset OTP (or token)
     if (otp) {
+      const cleanOtp = String(otp || '').replace(/\D/g, '');
       let consumedOtp = otpService.consumeEmailOtp({
         email: cleanEmail,
-        otp: String(otp).trim(),
+        otp: cleanOtp,
         expectedType: otpService.OTP_TYPES.PASSWORD_RESET
       });
 
@@ -718,7 +722,7 @@ exports.resetPassword = async (req, res, next) => {
         try {
           const { data: sbData, error: sbError } = await supabase.auth.verifyOtp({
             email: cleanEmail,
-            token: String(otp).trim(),
+            token: cleanOtp,
             type: 'recovery'
           });
           if (!sbError && sbData?.user) {
@@ -951,9 +955,10 @@ exports.verifyEmailOtp = async (req, res, next) => {
       });
     }
 
+    const cleanOtp = String(otp || '').replace(/\D/g, '');
     let consumed = otpService.consumeEmailOtp({
       email: cleanEmail,
-      otp: String(otp).trim(),
+      otp: cleanOtp,
       expectedType: otpService.OTP_TYPES.EMAIL_VERIFICATION
     });
 
@@ -962,7 +967,7 @@ exports.verifyEmailOtp = async (req, res, next) => {
       try {
         const { data: sbData, error: sbError } = await supabase.auth.verifyOtp({
           email: cleanEmail,
-          token: String(otp).trim(),
+          token: cleanOtp,
           type: 'email'
         });
         if (!sbError && sbData?.user) {
@@ -970,7 +975,7 @@ exports.verifyEmailOtp = async (req, res, next) => {
         } else {
           const { data: sbData2, error: sbError2 } = await supabase.auth.verifyOtp({
             email: cleanEmail,
-            token: String(otp).trim(),
+            token: cleanOtp,
             type: 'signup'
           });
           if (!sbError2 && sbData2?.user) {

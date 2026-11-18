@@ -92,6 +92,16 @@ async function runTests() {
     await initServer();
 
     // Isolated in-memory fixtures for unit test assertions
+    if (!db.users.some(u => u._id === 'usr_935ff8ae5310')) {
+      db.users.push({
+        _id: 'usr_935ff8ae5310',
+        id: 'usr_935ff8ae5310',
+        email: 'user935@plotpin.com',
+        roles: ['user', 'buyer', 'seller'],
+        accountStatus: 'active'
+      });
+    }
+
     if (!db.properties.some(p => p._id === 'prop_tirupati_04')) {
       db.properties.push({
         _id: 'prop_tirupati_04',

@@ -13,6 +13,7 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') }
 const http = require('http');
 const jwt = require('jsonwebtoken');
 const app = require('../src/app');
+const { db } = require('../src/config/database');
 
 let BASE_URL = 'http://localhost:5000/api/v1';
 let ephemeralServer = null;
@@ -70,18 +71,49 @@ async function runTests() {
 
   try {
     await new Promise((resolve) => {
-      const probe = http.get('http://localhost:5000/api/v1/health', () => {
+      ephemeralServer = http.createServer(app);
+      ephemeralServer.listen(0, () => {
+        const port = ephemeralServer.address().port;
+        BASE_URL = `http://localhost:${port}/api/v1`;
         resolve();
       });
-      probe.on('error', () => {
-        ephemeralServer = http.createServer(app);
-        ephemeralServer.listen(0, () => {
-          const port = ephemeralServer.address().port;
-          BASE_URL = `http://localhost:${port}/api/v1`;
-          resolve();
-        });
-      });
     });
+
+    const testUsers = [
+      { id: 'usr_client_001', _id: 'usr_client_001', email: 'owner@landpin.com', roles: ['user'], name: 'Owner Vikram', accountStatus: 'active' },
+      { id: 'usr_admin_001', _id: 'usr_admin_001', email: 'admin@landpin.com', roles: ['user', 'admin'], name: 'Admin Officer', accountStatus: 'active' }
+    ];
+    testUsers.forEach(u => {
+      if (!db.users.some(existing => existing._id === u._id || existing.id === u.id)) {
+        db.users.push(u);
+      }
+    });
+
+    if (!db.properties.some(p => p._id === 'prop_001' || p.id === 'prop_001')) {
+      db.properties.push({
+        _id: 'prop_001',
+        id: 'prop_001',
+        ownerId: 'usr_client_001',
+        title: 'Business Logic Test Property 1',
+        price: 3500000,
+        verificationStatus: 'approved',
+        publicationStatus: 'published',
+        availabilityStatus: 'available'
+      });
+    }
+
+    if (!db.properties.some(p => p._id === 'prop_002' || p.id === 'prop_002')) {
+      db.properties.push({
+        _id: 'prop_002',
+        id: 'prop_002',
+        ownerId: 'usr_admin_001',
+        title: 'Business Logic Test Property 2',
+        price: 4500000,
+        verificationStatus: 'approved',
+        publicationStatus: 'published',
+        availabilityStatus: 'available'
+      });
+    }
 
     const userToken = jwt.sign(
       { userId: 'usr_client_001', roles: ['user'] },

@@ -34,6 +34,11 @@ const ownerUser = { id: 'usr_client_001', _id: 'usr_client_001', email: 'owner@l
 const buyerUser = { id: 'usr_seller_002', _id: 'usr_seller_002', email: 'sunita.hegde@example.com', roles: ['user'], name: 'Sunita Hegde' };
 const adminUser = { id: 'usr_admin_001', _id: 'usr_admin_001', email: 'admin@landpin.com', roles: ['admin'], name: 'Admin Officer' };
 
+// Ensure test actors exist in memory database
+if (!db.users.some(u => u._id === ownerUser._id)) db.users.push(ownerUser);
+if (!db.users.some(u => u._id === buyerUser._id)) db.users.push(buyerUser);
+if (!db.users.some(u => u._id === adminUser._id)) db.users.push(adminUser);
+
 const ownerToken = makeToken(ownerUser);
 const buyerToken = makeToken(buyerUser);
 const adminToken = makeToken(adminUser);
@@ -57,6 +62,9 @@ function request(method, path, body = null, token = null) {
       res.on('end', () => {
         let parsed = null;
         try { parsed = JSON.parse(data); } catch { parsed = data; }
+        if (res.statusCode === 401) {
+          console.log(`[401 DEBUG on ${method} ${path}]:`, parsed);
+        }
         resolve({ status: res.statusCode, body: parsed });
       });
     });
@@ -200,6 +208,9 @@ async function runLifecycleTests() {
       version: revisionVersion
     }, adminToken);
 
+    if (adminApproveRev.status !== 200) {
+      console.log('DEBUG B.6 response:', adminApproveRev.status, adminApproveRev.body);
+    }
     assert('B.6', adminApproveRev.status === 200, 'Admin approves revision');
     assert('B.7', adminApproveRev.body.property?.title.includes('Renovated with Rooftop Solarium'), 'Approved changes atomically promoted to property');
     assert('B.8', adminApproveRev.body.property?.publicationStatus === 'published', 'Property returned to published status');
@@ -326,6 +337,20 @@ async function runLifecycleTests() {
     // SCENARIO F: Authorization Rules
     // =========================================================================
     console.log('\n--- Scenario F: Authorization Rules ---');
+
+    // Ensure prop_001 exists owned by ownerUser
+    if (!db.properties.some(p => (p._id === 'prop_001' || p.id === 'prop_001'))) {
+      db.properties.push({
+        _id: 'prop_001',
+        id: 'prop_001',
+        ownerId: ownerUser._id,
+        title: 'Authorization Rule Test Listing',
+        price: 3500000,
+        verificationStatus: 'approved',
+        publicationStatus: 'published',
+        availabilityStatus: 'available'
+      });
+    }
 
     // 1. Regular user cannot approve properties
     const userApprove = await request('POST', '/admin/properties/prop_001/approve', {}, buyerToken);

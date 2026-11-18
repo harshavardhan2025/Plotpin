@@ -1226,7 +1226,7 @@ exports.completeDeal = async (req, res, next) => {
       });
     }
 
-    const { outcome = 'sold', buyerName = 'Verified Citizen Buyer', buyerId, finalPrice } = req.body;
+    const { outcome = 'sold', buyerName = 'Verified Citizen Buyer', buyerId, buyerEmail: rawBuyerEmail, finalPrice } = req.body;
     const newStatus = outcome === 'rented' ? 'rented' : 'sold';
     const parsedFinalPrice = finalPrice ? parseIndianCurrency(finalPrice) : prop.price;
 
@@ -1307,6 +1307,8 @@ exports.completeDeal = async (req, res, next) => {
     const seller = (db.users || []).find(u => u._id === prop.ownerId);
     const sellerEmail = seller?.email || prop.ownerEmail || '';
     const sellerName = seller?.name || prop.ownerName || 'Property Owner';
+    const buyer = buyerId ? (db.users || []).find(u => u._id === buyerId || u.id === buyerId) : null;
+    const buyerEmail = rawBuyerEmail || buyer?.email || '';
 
     emailService.sendDealClosedEmails({
       propertyTitle: prop.title,

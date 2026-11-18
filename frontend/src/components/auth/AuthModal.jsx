@@ -282,7 +282,7 @@ export default function AuthModal({
 
     const cleanEmail = signupEmail.trim().toLowerCase();
     const cleanMobile = signupMobile.replace(/\D/g, '').slice(-10);
-    const cleanCode = signupOtp.trim();
+    const cleanCode = signupOtp.replace(/\D/g, '').slice(0, 6);
 
     if (!cleanCode || cleanCode.length < 6) {
       setErrorMsg('Please enter the 6-digit verification code sent to your email.');
@@ -384,7 +384,7 @@ export default function AuthModal({
       return;
     }
 
-    const cleanOtp = forgotOtp.trim();
+    const cleanOtp = forgotOtp.replace(/\D/g, '').slice(0, 6);
     if (!cleanOtp || cleanOtp.length < 6) {
       setErrorMsg('Please enter the 6-digit verification code sent to your email.');
       return;

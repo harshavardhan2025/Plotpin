@@ -33,10 +33,16 @@ function makeToken(user) {
   );
 }
 
-const buyer1 = { id: 'usr_seller_002', _id: 'usr_seller_002', email: 'sunita.hegde@example.com', roles: ['user'], name: 'Sunita Hegde' };
-const buyer2 = { id: 'usr_seller_003', _id: 'usr_seller_003', email: 'dr.patel@example.com', roles: ['user'], name: 'Dr. Ramesh Patel' };
-const ownerUser = { id: 'usr_client_001', _id: 'usr_client_001', email: 'owner@landpin.com', roles: ['user'], name: 'Owner Vikram' };
-const adminUser = { id: 'usr_admin_001', _id: 'usr_admin_001', email: 'admin@landpin.com', roles: ['admin'], name: 'Admin Officer' };
+const buyer1 = { id: 'usr_seller_002', _id: 'usr_seller_002', email: 'sunita.hegde@example.com', roles: ['user'], name: 'Sunita Hegde', accountStatus: 'active' };
+const buyer2 = { id: 'usr_seller_003', _id: 'usr_seller_003', email: 'dr.patel@example.com', roles: ['user'], name: 'Dr. Ramesh Patel', accountStatus: 'active' };
+const ownerUser = { id: 'usr_client_001', _id: 'usr_client_001', email: 'owner@landpin.com', roles: ['user'], name: 'Owner Vikram', accountStatus: 'active' };
+const adminUser = { id: 'usr_admin_001', _id: 'usr_admin_001', email: 'admin@landpin.com', roles: ['admin'], name: 'Admin Officer', accountStatus: 'active' };
+
+[buyer1, buyer2, ownerUser, adminUser].forEach(u => {
+  if (!db.users.some(existing => existing._id === u._id || existing.id === u.id)) {
+    db.users.push(u);
+  }
+});
 
 const tokenBuyer1 = makeToken(buyer1);
 const tokenBuyer2 = makeToken(buyer2);
@@ -102,6 +108,18 @@ async function runTests() {
 
   try {
     const targetPropId = 'prop_001';
+    if (!db.properties.some(p => p._id === targetPropId || p.id === targetPropId)) {
+      db.properties.push({
+        _id: targetPropId,
+        id: targetPropId,
+        ownerId: ownerUser._id,
+        title: 'Appointment Test Property',
+        price: 3500000,
+        verificationStatus: 'approved',
+        publicationStatus: 'published',
+        availabilityStatus: 'available'
+      });
+    }
     // Clean any leftover appointments for targetPropId from previous runs
     db.appointments = db.appointments.filter(a => a.propertyId !== targetPropId || a.status !== 'confirmed');
 

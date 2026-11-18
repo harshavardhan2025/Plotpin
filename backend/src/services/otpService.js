@@ -121,7 +121,7 @@ function inspectEmailOtp({ email, otp, expectedType }) {
   }
 
   const cleanEmail = normalizeEmail(email);
-  const cleanOtp = otp.trim();
+  const cleanOtp = String(otp || '').replace(/\D/g, '');
   const key = getStoreKey(cleanEmail, expectedType);
   const record = otpStore.get(key);
 
