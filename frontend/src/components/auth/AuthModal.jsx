@@ -251,13 +251,9 @@ export default function AuthModal({
       }
 
       setSignupStep(2);
+      setSignupOtp(''); // STRICTLY BLANK - User enters 6-digit code manually from their email inbox
       setResendCooldown(60);
-      if (res.fallbackOtp) {
-        setSignupOtp(res.fallbackOtp);
-        setSuccessMsg(res.message || `Test code auto-filled: ${res.fallbackOtp} (Add RESEND_API_KEY in Render for real inbox delivery)`);
-      } else {
-        setSuccessMsg(res.message || `A 6-digit verification code has been sent to ${cleanEmail}. Please check your inbox.`);
-      }
+      setSuccessMsg(res.message || `A 6-digit verification code has been dispatched to ${cleanEmail}. Please check your inbox and enter the code below.`);
     } catch (err) {
       if (err.code === 'MOBILE_ALREADY_EXISTS' || (err.message && err.message.toLowerCase().includes('mobile number already exists'))) {
         setMobileStatus({
@@ -342,13 +338,9 @@ export default function AuthModal({
         name: signupName.trim() || undefined,
         password: signupPassword || undefined
       });
+      setSignupOtp(''); // STRICTLY BLANK - User enters code manually from email
       setResendCooldown(60);
-      if (res.fallbackOtp) {
-        setSignupOtp(res.fallbackOtp);
-        setSuccessMsg(res.message || `Test code auto-filled: ${res.fallbackOtp}`);
-      } else {
-        setSuccessMsg(res.message || `A fresh 6-digit verification code has been dispatched to ${cleanEmail}.`);
-      }
+      setSuccessMsg(res.message || `A fresh 6-digit verification code has been dispatched to ${cleanEmail}. Please check your inbox and enter the code below.`);
     } catch (err) {
       setErrorMsg(err.message || 'Failed to resend code. Please wait a moment and try again.');
     } finally {
@@ -374,13 +366,9 @@ export default function AuthModal({
     try {
       const res = await api.sendPasswordResetOtp(cleanEmail);
       setForgotStep(2);
+      setForgotOtp(''); // STRICTLY BLANK - User enters code manually from email
       setResendCooldown(60);
-      if (res.fallbackOtp) {
-        setForgotOtp(res.fallbackOtp);
-        setSuccessMsg(res.message || `Test code auto-filled: ${res.fallbackOtp}`);
-      } else {
-        setSuccessMsg(res.message || `A 6-digit password reset code has been sent to ${cleanEmail}. Please check your inbox.`);
-      }
+      setSuccessMsg(res.message || `A 6-digit password reset code has been sent to ${cleanEmail}. Please check your inbox and enter the code below.`);
     } catch (err) {
       setErrorMsg(err.message || 'Unable to send password reset code. Please check your email.');
     } finally {

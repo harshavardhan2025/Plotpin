@@ -15,10 +15,45 @@
  */
 
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
+const DATA_DIR = path.join(__dirname, '../data');
+const OTP_FILE = path.join(DATA_DIR, 'active_otps.json');
 
 // In-memory OTP store: key `${email}:${type}` -> OTPRecord
-// And secondary lookup by token/code if needed
 const otpStore = new Map();
+
+function saveOtpsToDisk() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    const obj = {};
+    const now = Date.now();
+    for (const [k, rec] of otpStore.entries()) {
+      if (rec && rec.expiresAt > now && !rec.used) {
+        obj[k] = rec;
+      }
+    }
+    fs.writeFileSync(OTP_FILE, JSON.stringify(obj, null, 2), 'utf8');
+  } catch (e) {}
+}
+
+function loadOtpsFromDisk() {
+  try {
+    if (fs.existsSync(OTP_FILE)) {
+      const data = JSON.parse(fs.readFileSync(OTP_FILE, 'utf8'));
+      const now = Date.now();
+      for (const [k, rec] of Object.entries(data)) {
+        if (rec && rec.expiresAt > now && !rec.used && !otpStore.has(k)) {
+          otpStore.set(k, rec);
+        }
+      }
+    }
+  } catch (e) {}
+}
+
+// Initial load on service startup
+loadOtpsFromDisk();
 
 // In-memory store of emails verified during this session
 const verifiedEmails = new Set();
@@ -92,6 +127,7 @@ function generateEmailOtp({ email, type, ttlMinutes = 10 }) {
   };
 
   otpStore.set(key, otpRecord);
+  saveOtpsToDisk();
 
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[EmailOTP] Generated ${type} OTP for ${cleanEmail}: [ ${otp} ] (Expires in ${ttlMinutes}m)`);
@@ -123,7 +159,11 @@ function inspectEmailOtp({ email, otp, expectedType }) {
   const cleanEmail = normalizeEmail(email);
   const cleanOtp = String(otp || '').replace(/\D/g, '');
   const key = getStoreKey(cleanEmail, expectedType);
-  const record = otpStore.get(key);
+  let record = otpStore.get(key);
+  if (!record) {
+    loadOtpsFromDisk();
+    record = otpStore.get(key);
+  }
 
   if (!record) {
     return {
@@ -204,6 +244,7 @@ function inspectEmailOtp({ email, otp, expectedType }) {
   const isMatch = (record.otp === cleanOtp);
   if (!isMatch) {
     record.attempts += 1;
+    saveOtpsToDisk();
     const remaining = record.maxAttempts - record.attempts;
     return {
       valid: false,
@@ -250,6 +291,7 @@ function consumeEmailOtp({ email, otp, expectedType }) {
   record.usedAt = Date.now();
   record.invalidated = true;
   record.invalidationReason = 'CONSUMED';
+  saveOtpsToDisk();
 
   return {
     success: true,

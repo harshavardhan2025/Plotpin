@@ -643,7 +643,7 @@ exports.forgotPassword = async (req, res, next) => {
     });
 
     // SECURITY: OTP is never returned in the response body.
-    // Delivered exclusively via Gmail SMTP to the registered inbox.
+    // Delivered exclusively via Resend / Gmail to the registered inbox.
     const responsePayload = {
       success: true,
       email: cleanEmail,
@@ -651,10 +651,7 @@ exports.forgotPassword = async (req, res, next) => {
       deliveryMethod: emailResult.deliveryMethod,
       delivered: emailResult.delivered,
       previewUrl: (process.env.NODE_ENV !== 'production' && !emailResult.delivered) ? (emailResult.previewUrl || null) : null,
-      message: emailResult.delivered
-        ? `A 6-digit password reset code has been sent to ${cleanEmail}. Please check your inbox (and spam folder). The code expires in 10 minutes.`
-        : (emailResult.message || `Password reset code sent to ${cleanEmail}. Enter the code below to reset your password.`),
-      fallbackOtp: emailResult.fallbackOtp || null
+      message: emailResult.message || `A 6-digit password reset code has been sent to ${cleanEmail}. Please check your inbox and enter the code below.`
     };
 
     // Only expose OTP to automated test runners
@@ -905,7 +902,7 @@ exports.sendEmailVerificationOtp = async (req, res, next) => {
     });
 
     // SECURITY: Never return the OTP in the API response.
-    // The code is delivered exclusively via Gmail SMTP to the user's inbox.
+    // The code is delivered exclusively via Resend / Gmail to the user's inbox.
     // Only automated test suites receive the otp field (NODE_ENV === 'test').
     const responsePayload = {
       success: true,
@@ -913,13 +910,9 @@ exports.sendEmailVerificationOtp = async (req, res, next) => {
       expiresInSeconds: otpRecord.expiresInSeconds,
       deliveryMethod: emailResult.deliveryMethod,
       delivered: emailResult.delivered,
-      // previewUrl is only included in non-production when Gmail is not configured (Ethereal dev fallback)
       previewUrl: (process.env.NODE_ENV !== 'production' && !emailResult.delivered) ? (emailResult.previewUrl || null) : null,
       state: ACCOUNT_STATES.VERIFICATION_REQUIRED,
-      message: emailResult.delivered
-        ? `A 6-digit verification code has been sent to ${cleanEmail}. Please check your inbox (and spam folder). The code expires in 10 minutes.`
-        : (emailResult.message || `Verification code sent to ${cleanEmail}. Enter the code below to verify your email.`),
-      fallbackOtp: emailResult.fallbackOtp || null
+      message: emailResult.message || `A 6-digit verification code has been dispatched to ${cleanEmail}. Please check your inbox and enter the code below.`
     };
 
     // OTP exposed only for automated test runners (never for browser clients)
