@@ -16,35 +16,34 @@
 
 const nodemailer = require("nodemailer");
 
-// Read Gmail config once from environment
-const GMAIL_USER = (process.env.GMAIL_USER || "").trim();
-const GMAIL_APP_PASSWORD = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
-
 let _gmailTransporter = null;
 let _configWarned = false;
 
 function getGmailTransporter() {
-  if (_gmailTransporter) return _gmailTransporter;
+  const user = (process.env.GMAIL_USER || "").trim();
+  const pass = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
 
-  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
+  if (!user || !pass) {
     if (!_configWarned) {
-      console.warn("[EmailService] Gmail SMTP not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD in backend/.env. Falling back to Ethereal dev preview.");
+      console.warn("[EmailService] Gmail SMTP not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD in environment variables.");
       _configWarned = true;
     }
     return null;
   }
 
+  if (_gmailTransporter) return _gmailTransporter;
+
   _gmailTransporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
-    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+    auth: { user, pass },
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000
   });
 
-  console.log("[EmailService] Gmail SMTP transporter ready -> smtp.gmail.com:465 (" + GMAIL_USER + ")");
+  console.log("[EmailService] Gmail SMTP transporter ready -> smtp.gmail.com:465 (" + user + ")");
   return _gmailTransporter;
 }
 
@@ -112,7 +111,8 @@ function buildDealNotificationHtml(title, heading, recipientName, message, detai
 
 // Core send dispatcher
 async function _sendEmail(to, subject, html, logLabel) {
-  const fromAddr = GMAIL_USER ? ('"PlotPin Security" <' + GMAIL_USER + ">") : '"PlotPin Security" <no-reply@plotpin.com>';
+  const activeGmailUser = (process.env.GMAIL_USER || "").trim();
+  const fromAddr = activeGmailUser ? ('"PlotPin Security" <' + activeGmailUser + ">") : '"PlotPin Security" <no-reply@plotpin.com>';
 
   // Simulated delivery for test suite / non-production dummy domains to prevent external SMTP timeouts
   if (process.env.NODE_ENV === 'test' || (to && (to.endsWith('.test') || to.endsWith('@example.com') || to.endsWith('.local')))) {
@@ -143,7 +143,7 @@ async function _sendEmail(to, subject, html, logLabel) {
     return { delivered: true, deliveryMethod: "resend_api", previewUrl: null };
   }
 
-  // 3. Ethereal dev preview
+  // 3. Ethereal dev preview (only in development/test)
   let previewUrl = null;
   if (process.env.NODE_ENV !== "production") {
     try {
@@ -154,9 +154,14 @@ async function _sendEmail(to, subject, html, logLabel) {
         console.log("[EmailService] Ethereal preview: " + previewUrl);
       }
     } catch (e) { console.warn("[EmailService] Ethereal error:", e.message); }
+    return { delivered: false, deliveryMethod: "ethereal_preview", previewUrl };
   }
 
-  return { delivered: false, deliveryMethod: "ethereal_preview", previewUrl };
+  // In production, if neither Gmail nor Resend is configured, throw a clear error
+  const configErr = new Error("Email service is not configured on this server. Please add GMAIL_USER and GMAIL_APP_PASSWORD to your Render Environment Variables.");
+  configErr.code = "EMAIL_NOT_CONFIGURED";
+  configErr.statusCode = 503;
+  throw configErr;
 }
 
 // Public API
