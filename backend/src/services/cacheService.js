@@ -90,8 +90,16 @@ class CacheService {
 
   init() {
     const isExplicitlyDisabled = process.env.REDIS_ENABLED === 'false';
-    const redisUrl = process.env.REDIS_URL;
+    let redisUrl = process.env.REDIS_URL ? String(process.env.REDIS_URL).trim() : null;
     const redisHost = process.env.REDIS_HOST;
+
+    if (redisUrl) {
+      // In case user pasted full command e.g. "redis-cli --tls -u redis://..."
+      const match = redisUrl.match(/rediss?:\/\/[^\s'"\\]+/i);
+      if (match) {
+        redisUrl = match[0];
+      }
+    }
 
     if (isExplicitlyDisabled) {
       console.log('ℹ️ [CacheService] Redis explicitly disabled via REDIS_ENABLED=false. Using In-Memory cache.');
