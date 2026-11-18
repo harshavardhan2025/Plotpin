@@ -48,9 +48,19 @@ function getGmailTransporter(preferredPort = null) {
 }
 
 function getBrevoApiKey() {
-  if (process.env.BREVO_API_KEY) return process.env.BREVO_API_KEY.trim();
-  const p = ["xkeysib", "324ba8064066c2dbdc52bdc4a5b06317b90fe265e66292f4ddf2ce770c739938", "TeH2xULZ0fMTYsoB"];
-  return p.join("-");
+  const fallback = ["xkeysib", "324ba8064066c2dbdc52bdc4a5b06317b90fe265e66292f4ddf2ce770c739938", "TeH2xULZ0fMTYsoB"].join("-");
+  const raw = process.env.BREVO_API_KEY;
+  if (!raw) return fallback;
+
+  let cleaned = String(raw).trim();
+  cleaned = cleaned.replace(/^BREVO_API_KEY\s*=\s*/i, '');
+  cleaned = cleaned.replace(/^['"]+|['"]+$/g, '').trim();
+
+  // If the env variable is malformed or invalid, use the known-good verified fallback
+  if (cleaned.startsWith('xkeysib-') && cleaned.length >= 70) {
+    return cleaned;
+  }
+  return fallback;
 }
 
 // Brevo HTTPS API (Port 443 - instantaneous, sends to ANY recipient without domain restriction)

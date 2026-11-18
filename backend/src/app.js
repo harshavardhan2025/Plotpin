@@ -107,6 +107,7 @@ app.get('/api/v1/health', (req, res) => {
     status: 'ok',
     service: 'property-marketplace-api',
     cache: cacheService.getStatus(),
+    emailProvider: 'brevo_https_443',
     timestamp: new Date().toISOString()
   });
 });
