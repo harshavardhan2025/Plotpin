@@ -123,11 +123,16 @@ class CacheService {
       };
 
       if (redisUrl) {
-        // Automatically support rediss:// with TLS
-        if (redisUrl.startsWith('rediss://')) {
+        // Automatically enable TLS for rediss://, upstash.io, or cloud providers requiring SSL
+        const isSecure = redisUrl.startsWith('rediss://') || redisUrl.includes('upstash.io') || redisUrl.includes('.cache.amazonaws.com');
+        if (isSecure) {
           clientConfig.tls = { rejectUnauthorized: false };
         }
-        this.redis = new Redis(redisUrl, clientConfig);
+        // Normalize redis:// to rediss:// for providers that enforce TLS
+        const finalUrl = (isSecure && redisUrl.startsWith('redis://'))
+          ? redisUrl.replace(/^redis:\/\//, 'rediss://')
+          : redisUrl;
+        this.redis = new Redis(finalUrl, clientConfig);
       } else {
         this.redis = new Redis({
           host: redisHost || '127.0.0.1',
