@@ -56,10 +56,14 @@ function getBrevoApiKey() {
 // Brevo HTTPS API (Port 443 - instantaneous, sends to ANY recipient without domain restriction)
 async function trySendViaBrevo(to, subject, html) {
   const apiKey = getBrevoApiKey();
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.warn("[EmailService] Brevo API key not found");
+    return null;
+  }
 
-  const senderEmail = (process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER || "kharshav67@gmail.com").trim();
-  const senderName = process.env.BREVO_SENDER_NAME || "PlotPin Security";
+  // Sender email MUST be the verified Brevo sender address
+  const senderEmail = (process.env.BREVO_SENDER_EMAIL || "kharshav67@gmail.com").replace(/['"\s]/g, '').trim().toLowerCase();
+  const senderName = "PlotPin Security";
 
   try {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -83,11 +87,18 @@ async function trySendViaBrevo(to, subject, html) {
     }
 
     const errText = await res.text();
-    console.warn(`[EmailService] Brevo API rejected delivery to ${to} (${res.status}):`, errText);
+    console.error(`[EmailService] Brevo API rejected delivery to ${to} (${res.status}):`, errText);
+    const err = new Error(`Email delivery failed via Brevo (${res.status}): ${errText}`);
+    err.statusCode = 502;
+    err.code = "BREVO_DELIVERY_FAILED";
+    throw err;
   } catch (e) {
-    console.warn("[EmailService] Brevo exception:", e.message);
+    if (e.code === "BREVO_DELIVERY_FAILED") throw e;
+    console.error("[EmailService] Brevo exception:", e.message);
+    const err = new Error(`Email delivery failed: ${e.message}`);
+    err.statusCode = 502;
+    throw err;
   }
-  return null;
 }
 
 function getResendApiKey() {
