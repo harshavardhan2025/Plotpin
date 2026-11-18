@@ -47,8 +47,6 @@ function getGmailTransporter(preferredPort = null) {
   });
 }
 
-const RESEND_ACCOUNT_EMAIL = "kharshav67@gmail.com";
-
 function getBrevoApiKey() {
   if (process.env.BREVO_API_KEY) return process.env.BREVO_API_KEY.trim();
   const p = ["xkeysib", "324ba8064066c2dbdc52bdc4a5b06317b90fe265e66292f4ddf2ce770c739938", "TeH2xULZ0fMTYsoB"];
@@ -126,39 +124,8 @@ async function trySendViaResend(to, subject, html) {
     }
 
     const errText = await res.text();
-    console.warn(`[EmailService] Resend primary delivery to ${to} returned ${res.status}:`, errText);
-
-    // Resend Free Sandbox restriction: only verified account owner (kharshav67@gmail.com) can receive emails
-    if (res.status === 403 && errText.includes("only send testing emails to your own email address") && to !== RESEND_ACCOUNT_EMAIL) {
-      console.log(`[EmailService] Routing Resend sandbox email for [${to}] to registered owner [${RESEND_ACCOUNT_EMAIL}]...`);
-
-      const forwardedSubject = `[PlotPin OTP for ${to}] ${subject}`;
-      const forwardedHtml = html.replace(
-        "Thank you for choosing PlotPin.",
-        `This verification code was requested for <strong>${to}</strong>.<br><br><span style="color:#059669;font-weight:600;">(Resend Testing Mode: Delivered to your verified inbox: ${RESEND_ACCOUNT_EMAIL})</span>`
-      );
-
-      const fwdRes = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { 
-          "Authorization": "Bearer " + apiKey, 
-          "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({ 
-          from: fromAddr, 
-          to: [RESEND_ACCOUNT_EMAIL], 
-          subject: forwardedSubject, 
-          html: forwardedHtml 
-        })
-      });
-
-      if (fwdRes.ok) {
-        console.log(`[EmailService] Resend successfully routed verification OTP to ${RESEND_ACCOUNT_EMAIL} for recipient ${to}`);
-        return { success: true, deliveredTo: RESEND_ACCOUNT_EMAIL, forwardedFrom: to };
-      } else {
-        console.warn(`[EmailService] Resend sandbox forward error:`, await fwdRes.text());
-      }
-    }
+    console.warn(`[EmailService] Resend delivery to ${to} returned ${res.status}:`, errText);
+    return null;
   } catch (e) { 
     console.warn("[EmailService] Resend exception:", e.message); 
   }
@@ -238,10 +205,7 @@ async function _sendEmail(to, subject, html, logLabel) {
   // 2. Resend API (Secondary fallback)
   const resendResult = await trySendViaResend(to, subject, html);
   if (resendResult && resendResult.success) {
-    let msg = `A 6-digit verification code has been dispatched to ${to}. Please check your inbox and enter the code below.`;
-    if (resendResult.deliveredTo && resendResult.deliveredTo !== to) {
-      msg = `A 6-digit verification code for ${to} has been sent to your verified inbox (${resendResult.deliveredTo}). Please check your inbox and enter the code below.`;
-    }
+    const msg = `A 6-digit verification code has been dispatched to ${to}. Please check your inbox and enter the code below.`;
     return { 
       delivered: true, 
       deliveryMethod: "resend_api", 
