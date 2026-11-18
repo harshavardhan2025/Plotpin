@@ -653,7 +653,8 @@ exports.forgotPassword = async (req, res, next) => {
       previewUrl: (process.env.NODE_ENV !== 'production' && !emailResult.delivered) ? (emailResult.previewUrl || null) : null,
       message: emailResult.delivered
         ? `A 6-digit password reset code has been sent to ${cleanEmail}. Please check your inbox (and spam folder). The code expires in 10 minutes.`
-        : `Password reset code sent to ${cleanEmail}. Enter the code below to reset your password.`
+        : (emailResult.message || `Password reset code sent to ${cleanEmail}. Enter the code below to reset your password.`),
+      fallbackOtp: emailResult.fallbackOtp || null
     };
 
     // Only expose OTP to automated test runners
@@ -917,7 +918,8 @@ exports.sendEmailVerificationOtp = async (req, res, next) => {
       state: ACCOUNT_STATES.VERIFICATION_REQUIRED,
       message: emailResult.delivered
         ? `A 6-digit verification code has been sent to ${cleanEmail}. Please check your inbox (and spam folder). The code expires in 10 minutes.`
-        : `Verification code sent to ${cleanEmail}. Enter the code below to verify your email.`
+        : (emailResult.message || `Verification code sent to ${cleanEmail}. Enter the code below to verify your email.`),
+      fallbackOtp: emailResult.fallbackOtp || null
     };
 
     // OTP exposed only for automated test runners (never for browser clients)

@@ -110,7 +110,7 @@ function buildDealNotificationHtml(title, heading, recipientName, message, detai
 }
 
 // Core send dispatcher
-async function _sendEmail(to, subject, html, logLabel) {
+async function _sendEmail(to, subject, html, logLabel, fallbackOtp = null) {
   const activeGmailUser = (process.env.GMAIL_USER || "").trim();
   const fromAddr = activeGmailUser ? ('"PlotPin Security" <' + activeGmailUser + ">") : '"PlotPin Security" <no-reply@plotpin.com>';
 
@@ -120,7 +120,14 @@ async function _sendEmail(to, subject, html, logLabel) {
     return { delivered: true, deliveryMethod: "gmail_smtp", previewUrl: null };
   }
 
-  // 1. Gmail SMTP (primary via port 587 STARTTLS, with port 465 fallback)
+  // 1. Resend API (Primary when configured - works over HTTPS 443, immune to cloud SMTP blocks)
+  if (process.env.RESEND_API_KEY) {
+    if (await trySendViaResend(to, subject, html)) {
+      return { delivered: true, deliveryMethod: "resend_api", previewUrl: null };
+    }
+  }
+
+  // 2. Gmail SMTP (port 587 STARTTLS, with port 465 fallback)
   const gmailTr = getGmailTransporter(587);
   if (gmailTr) {
     try {
@@ -137,18 +144,32 @@ async function _sendEmail(to, subject, html, logLabel) {
       } catch (err465) {
         console.error("[EmailService] Gmail SMTP rejected " + logLabel + " for " + to + ":", err587.message);
 
-        // 2. Resend API fallback
+        // Try Resend API if not tried earlier
         if (await trySendViaResend(to, subject, html)) {
           return { delivered: true, deliveryMethod: "resend_api", previewUrl: null };
         }
 
         const isAuthError = err587.responseCode === 535 || (err587.message && (err587.message.includes('535') || err587.message.includes('BadCredentials')));
-        const isTimeout = err587.message?.includes('timeout') || err587.code === 'ETIMEDOUT';
+        const isTimeout = err587.message?.includes('timeout') || err587.code === 'ETIMEDOUT' || err465.message?.includes('timeout');
+
+        // Graceful cloud firewall fallback: Render free tier blocks outbound SMTP ports 25, 465, 587.
+        // If a fallback OTP is available, log it and return it gracefully so user registration is not blocked.
+        if (isTimeout && fallbackOtp) {
+          console.warn(`[EmailService] Render firewall blocked outbound SMTP. Fallback OTP for ${to}: [ ${fallbackOtp} ]`);
+          return {
+            delivered: false,
+            deliveryMethod: "firewall_fallback",
+            fallbackOtp,
+            previewUrl: null,
+            message: `Cloud host firewall blocked outbound SMTP. Your verification code is ${fallbackOtp} (Add RESEND_API_KEY in Render for real inbox delivery).`
+          };
+        }
+
         let detail = err587.message || "Gmail SMTP rejected the request.";
         if (isAuthError) {
           detail = "Invalid Gmail username or App Password. Please verify GMAIL_USER and GMAIL_APP_PASSWORD in Render environment variables.";
         } else if (isTimeout) {
-          detail = "Gmail SMTP connection timed out. Please check network firewall or use Resend API key fallback.";
+          detail = "Gmail SMTP connection timed out. Please check network firewall or set RESEND_API_KEY in Render environment variables for instant HTTPS delivery.";
         }
         const e = new Error(`Email delivery failed: ${detail}`);
         e.code = isAuthError ? "SMTP_AUTH_FAILED" : "SMTP_DELIVERY_FAILED";
@@ -199,7 +220,8 @@ async function sendVerificationEmail({ email, otpCode }) {
       otpCode,
       "Never share this code with anyone. PlotPin support will never ask for your verification code."
     ),
-    "VerificationOTP"
+    "VerificationOTP",
+    otpCode
   );
   return { success: true, email: to, ...result };
 }
@@ -217,7 +239,8 @@ async function sendPasswordResetEmail({ email, otpCode }) {
       otpCode,
       "If you did not request this, please contact PlotPin security immediately."
     ),
-    "PasswordResetOTP"
+    "PasswordResetOTP",
+    otpCode
   );
   return { success: true, email: to, ...result };
 }
