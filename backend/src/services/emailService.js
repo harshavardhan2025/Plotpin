@@ -130,8 +130,12 @@ async function _sendEmail(to, subject, html, logLabel) {
     } catch (err) {
       _gmailTransporter = null;
       console.error("[EmailService] Gmail SMTP rejected " + logLabel + " for " + to + ":", err.message);
-      const e = new Error("Email delivery failed. Gmail SMTP rejected the request. Please verify your internet connection or try again.");
-      e.code = "SMTP_DELIVERY_FAILED";
+      const isAuthError = err.responseCode === 535 || (err.message && (err.message.includes('535') || err.message.includes('BadCredentials')));
+      const detail = isAuthError
+        ? "Invalid Gmail username or App Password. Please verify GMAIL_USER and GMAIL_APP_PASSWORD in Render environment variables."
+        : (err.message || "Gmail SMTP rejected the request.");
+      const e = new Error(`Email delivery failed: ${detail}`);
+      e.code = isAuthError ? "SMTP_AUTH_FAILED" : "SMTP_DELIVERY_FAILED";
       e.statusCode = 502;
       e.smtpCode = err.responseCode;
       throw e;
