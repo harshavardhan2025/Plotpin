@@ -99,11 +99,14 @@ app.use('/api/v1/appointments', appointmentRoutes);
 app.use('/api/v1/support', supportRoutes);
 app.use('/api/v1/location', locationRoutes);
 
+const { cacheService } = require('./services/cacheService');
+
 // Health check
 app.get('/api/v1/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'property-marketplace-api',
+    cache: cacheService.getStatus(),
     timestamp: new Date().toISOString()
   });
 });

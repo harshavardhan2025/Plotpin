@@ -5,8 +5,15 @@
 const { db } = require('../config/database');
 const emailService = require('../services/emailService');
 const { findPropertyById, invalidateSearchCache, parseIndianCurrency } = require('./propertyController');
+const { cacheService } = require('../services/cacheService');
 
-exports.getOverview = (req, res) => {
+exports.getOverview = async (req, res) => {
+  const cacheKey = 'admin:overview';
+  const cached = await cacheService.get(cacheKey);
+  if (cached) {
+    return res.json(cached);
+  }
+
   const pendingReviewCount = db.properties.filter(p => p.verificationStatus === 'pending_review' || p.verificationStatus === 'submitted').length;
   const approvedCount = db.properties.filter(p => p.verificationStatus === 'approved').length;
   const publishedCount = db.properties.filter(p => p.publicationStatus === 'published').length;
@@ -16,7 +23,7 @@ exports.getOverview = (req, res) => {
   const activeDealsCount = (db.escrows || []).length;
   const activeMediationCallsCount = (db.callRequests || []).length;
 
-  res.json({
+  const payload = {
     success: true,
     kpis: {
       pendingReviewCount,
@@ -28,7 +35,10 @@ exports.getOverview = (req, res) => {
       activeMediationCallsCount,
       activeDealsCount
     }
-  });
+  };
+
+  await cacheService.set(cacheKey, payload, 60);
+  res.json(payload);
 };
 
 exports.getReviewQueue = (req, res) => {

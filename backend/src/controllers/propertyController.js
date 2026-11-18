@@ -6,6 +6,7 @@ const { db, supabase } = require('../config/database');
 const { storage } = require('../config/storage');
 const { isPropertyPubliclyEligible, isPropertyActionEligible } = require('../utils/propertyEligibility');
 const emailService = require('../services/emailService');
+const { cacheService } = require('../services/cacheService');
 
 // Helper to find property (strictly excludes permanently removed/tombstoned properties)
 const findPropertyById = (id) => db.properties.find(p => (p._id === id || p.id === id) && !p.isRemoved && p.status !== 'removed' && !(db.removedPropertyIds && (db.removedPropertyIds.has(p._id) || db.removedPropertyIds.has(p.id))));
@@ -232,12 +233,15 @@ function checkForDuplicateProperty(newProp, excludeId = null) {
 }
 exports.checkForDuplicateProperty = checkForDuplicateProperty;
 
-// Bounded TTL query cache for public searches
-const publicSearchCache = new Map();
-const CACHE_TTL_MS = 30000; // 30 seconds
-
-function invalidateSearchCache() {
-  publicSearchCache.clear();
+// Centralized search cache invalidation for Redis & in-memory engines
+async function invalidateSearchCache() {
+  try {
+    await cacheService.delPattern('properties:*');
+    await cacheService.delPattern('property:*');
+    await cacheService.del('admin:overview');
+  } catch (err) {
+    console.warn('⚠️ [Cache] Failed to invalidate search cache:', err.message);
+  }
 }
 
 exports.searchPublic = async (req, res, next) => {
@@ -248,14 +252,14 @@ exports.searchPublic = async (req, res, next) => {
     } = req.query;
 
     const excludeId = excludeOwnerId || (req.user ? req.user : null);
-    const cacheKey = JSON.stringify({
+    const cacheKey = `properties:search:${JSON.stringify({
       category, purpose, propertyType, budgetMax, budgetMin, locality, query,
       excludeId, lat, lng, radiusKm, sortBy, page, limit
-    });
+    })}`;
 
-    const cached = publicSearchCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      return res.json(cached.payload);
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
     }
 
     // Filter available properties using central eligibility rule (strictly excludes removed, unapproved, unpublished, revision-pending, and owner listings)
@@ -403,10 +407,8 @@ exports.searchPublic = async (req, res, next) => {
       properties: sanitizedPaginated
     };
 
-    if (publicSearchCache.size > 200) {
-      publicSearchCache.clear();
-    }
-    publicSearchCache.set(cacheKey, { timestamp: Date.now(), payload });
+    // Cache for 60 seconds (Redis & In-Memory)
+    await cacheService.set(cacheKey, payload, 60);
 
     res.json(payload);
   } catch (error) {
@@ -441,6 +443,11 @@ exports.getNearby = async (req, res) => {
     }
 
     const excludeId = req.user ? req.user : null;
+    const cacheKey = `properties:nearby:${lat.toFixed(4)}:${lng.toFixed(4)}:${radius}:${excludeId || 'anon'}`;
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
 
     // Public eligibility: strictly excludes unapproved, removed, unpublished, or seller's own listings
     let results = db.properties
@@ -466,11 +473,16 @@ exports.getNearby = async (req, res) => {
       return safe;
     });
 
-    return res.json({
+    const payload = {
       success: true,
       count: sanitized.length,
       properties: sanitized
-    });
+    };
+
+    // Cache nearby query for 60 seconds
+    await cacheService.set(cacheKey, payload, 60);
+
+    return res.json(payload);
   } catch (error) {
     console.error('Nearby properties error:', error);
     return res.status(500).json({
@@ -480,8 +492,18 @@ exports.getNearby = async (req, res) => {
   }
 };
 
-exports.getById = (req, res, next) => {
+exports.getById = async (req, res, next) => {
   try {
+    const isPublicViewer = !req.user;
+    const cacheKey = `property:public:${req.params.id}`;
+
+    if (isPublicViewer) {
+      const cached = await cacheService.get(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+    }
+
     const prop = findPropertyById(req.params.id);
     if (!prop || prop.isRemoved || prop.status === 'removed' || (db.removedPropertyIds && db.removedPropertyIds.has(req.params.id))) {
       return res.status(404).json({ error: "Property listing not found", code: "NOT_FOUND" });
@@ -531,10 +553,16 @@ exports.getById = (req, res, next) => {
       delete safeProp.pendingRevision;
     }
 
-    res.json({
+    const payload = {
       success: true,
       property: safeProp
-    });
+    };
+
+    if (isPublicViewer && prop.publicationStatus === 'published') {
+      await cacheService.set(cacheKey, payload, 300);
+    }
+
+    res.json(payload);
   } catch (error) {
     next(error);
   }

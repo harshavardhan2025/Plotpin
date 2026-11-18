@@ -14,6 +14,7 @@
 
 const { db } = require('../config/database');
 const { isPropertyPubliclyEligible } = require('../utils/propertyEligibility');
+const { cacheService } = require('../services/cacheService');
 
 // Permitted enumeration values
 const ALLOWED_PURPOSES = new Set(['sale', 'rent']);
@@ -542,6 +543,11 @@ exports.getRecommendations = async (req, res, next) => {
 
     // Step 2: Public Property Eligibility & Hard Filtering
     const viewerId = req.user ? req.user : null;
+    const cacheKey = `recommendations:${JSON.stringify({ ...validatedInputs, viewerId })}`;
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
 
     // Filter properties strictly
     const eligibleCandidates = db.properties.filter(p => {
@@ -599,7 +605,7 @@ exports.getRecommendations = async (req, res, next) => {
 
     // Step 3: If zero eligible candidates match, return successful empty result
     if (eligibleCandidates.length === 0) {
-      return res.json({
+      const emptyPayload = {
         success: true,
         source: "internal-deterministic-engine",
         engine: "rule-based-deterministic",
@@ -608,7 +614,9 @@ exports.getRecommendations = async (req, res, next) => {
         totalCandidates: 0,
         rankedCount: 0,
         results: []
-      });
+      };
+      await cacheService.set(cacheKey, emptyPayload, 60);
+      return res.json(emptyPayload);
     }
 
     // Build candidate map for fast lookup and validation
@@ -744,7 +752,7 @@ exports.getRecommendations = async (req, res, next) => {
     }
 
     if (fastApiSuccess) {
-      return res.json({
+      const payload = {
         success: true,
         source: "python-fastapi-service",
         engine: "ai-model-ranked",
@@ -753,7 +761,9 @@ exports.getRecommendations = async (req, res, next) => {
         totalCandidates: eligibleCandidates.length,
         rankedCount: fastApiResults.length,
         results: fastApiResults
-      });
+      };
+      await cacheService.set(cacheKey, payload, 60);
+      return res.json(payload);
     }
 
     // Step 5: Resilient Deterministic Fallback implementing exact formula:
@@ -827,7 +837,7 @@ exports.getRecommendations = async (req, res, next) => {
       return a.propertyId.localeCompare(b.propertyId);
     });
 
-    res.json({
+    const fallbackPayload = {
       success: true,
       source: "internal-deterministic-engine",
       engine: "rule-based-deterministic",
@@ -836,7 +846,9 @@ exports.getRecommendations = async (req, res, next) => {
       totalCandidates: eligibleCandidates.length,
       rankedCount: rankedFallback.length,
       results: rankedFallback
-    });
+    };
+    await cacheService.set(cacheKey, fallbackPayload, 60);
+    res.json(fallbackPayload);
   } catch (error) {
     next(error);
   }

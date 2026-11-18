@@ -1,23 +1,12 @@
 /**
  * Location Geocoding & Reverse-Geocoding Controller
- * Caches Nominatim requests with TTL to comply with OpenStreetMap usage policy
+ * Caches Nominatim requests with Redis & in-memory fallback to comply with OpenStreetMap usage policy
  * and eliminate public client-side rate limits.
  */
 
-const geocodeCache = new Map();
-const reverseCache = new Map();
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const { cacheService } = require('../services/cacheService');
 
-// Cleanup stale cache periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [k, v] of geocodeCache.entries()) {
-    if (now - v.timestamp > CACHE_TTL_MS) geocodeCache.delete(k);
-  }
-  for (const [k, v] of reverseCache.entries()) {
-    if (now - v.timestamp > CACHE_TTL_MS) reverseCache.delete(k);
-  }
-}, 60 * 60 * 1000);
+const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 
 /**
  * GET /api/v1/location/search?q=...
@@ -29,10 +18,10 @@ exports.search = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Query parameter q is required' });
     }
 
-    const cacheKey = q.toLowerCase();
-    const cached = geocodeCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      return res.json({ success: true, data: cached.data, cached: true });
+    const cacheKey = `location:search:${q.toLowerCase()}`;
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      return res.json({ success: true, data: cached, cached: true });
     }
 
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&addressdetails=1`;
@@ -48,7 +37,7 @@ exports.search = async (req, res) => {
     }
 
     const data = await response.json();
-    geocodeCache.set(cacheKey, { data, timestamp: Date.now() });
+    await cacheService.set(cacheKey, data, CACHE_TTL_SECONDS);
 
     return res.json({ success: true, data, cached: false });
   } catch (error) {
@@ -69,10 +58,10 @@ exports.reverse = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid latitude or longitude coordinates' });
     }
 
-    const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
-    const cached = reverseCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      return res.json({ success: true, data: cached.data, cached: true });
+    const cacheKey = `location:reverse:${lat.toFixed(4)},${lng.toFixed(4)}`;
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      return res.json({ success: true, data: cached, cached: true });
     }
 
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`;
@@ -88,7 +77,7 @@ exports.reverse = async (req, res) => {
     }
 
     const data = await response.json();
-    reverseCache.set(cacheKey, { data, timestamp: Date.now() });
+    await cacheService.set(cacheKey, data, CACHE_TTL_SECONDS);
 
     return res.json({ success: true, data, cached: false });
   } catch (error) {
@@ -96,4 +85,3 @@ exports.reverse = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Unable to perform reverse geocoding' });
   }
 };
-
