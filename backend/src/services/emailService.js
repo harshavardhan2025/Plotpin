@@ -1,7 +1,7 @@
 /**
  * PlotPin Email Delivery Service
  *
- * Primary: Gmail SMTP via smtp.gmail.com:465 (SSL)
+ * Primary: Gmail SMTP via smtp.gmail.com:587 (TLS) with 465 fallback
  * Dev fallback: Ethereal test mailbox (only when Gmail is not configured)
  *
  * Security invariants:
@@ -19,7 +19,7 @@ const nodemailer = require("nodemailer");
 let _gmailTransporter = null;
 let _configWarned = false;
 
-function getGmailTransporter() {
+function getGmailTransporter(preferredPort = null) {
   const user = (process.env.GMAIL_USER || "").trim();
   const pass = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
 
@@ -31,20 +31,20 @@ function getGmailTransporter() {
     return null;
   }
 
-  if (_gmailTransporter) return _gmailTransporter;
+  // Cloud environments (Render, AWS, etc.) block port 465 on free tiers, but port 587 (STARTTLS) is open.
+  const port = preferredPort || parseInt(process.env.GMAIL_SMTP_PORT, 10) || 587;
+  const isSecure = port === 465;
 
-  _gmailTransporter = nodemailer.createTransport({
+  return nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    port,
+    secure: isSecure,
+    requireTLS: !isSecure,
     auth: { user, pass },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 10000
   });
-
-  console.log("[EmailService] Gmail SMTP transporter ready -> smtp.gmail.com:465 (" + user + ")");
-  return _gmailTransporter;
 }
 
 // Resend fallback
@@ -120,29 +120,46 @@ async function _sendEmail(to, subject, html, logLabel) {
     return { delivered: true, deliveryMethod: "gmail_smtp", previewUrl: null };
   }
 
-  // 1. Gmail SMTP (primary)
-  const gmailTr = getGmailTransporter();
+  // 1. Gmail SMTP (primary via port 587 STARTTLS, with port 465 fallback)
+  const gmailTr = getGmailTransporter(587);
   if (gmailTr) {
     try {
       await gmailTr.sendMail({ from: fromAddr, to, subject, html });
-      console.log("[EmailService] " + logLabel + " delivered via Gmail SMTP to " + to);
+      console.log("[EmailService] " + logLabel + " delivered via Gmail SMTP (port 587) to " + to);
       return { delivered: true, deliveryMethod: "gmail_smtp", previewUrl: null };
-    } catch (err) {
-      _gmailTransporter = null;
-      console.error("[EmailService] Gmail SMTP rejected " + logLabel + " for " + to + ":", err.message);
-      const isAuthError = err.responseCode === 535 || (err.message && (err.message.includes('535') || err.message.includes('BadCredentials')));
-      const detail = isAuthError
-        ? "Invalid Gmail username or App Password. Please verify GMAIL_USER and GMAIL_APP_PASSWORD in Render environment variables."
-        : (err.message || "Gmail SMTP rejected the request.");
-      const e = new Error(`Email delivery failed: ${detail}`);
-      e.code = isAuthError ? "SMTP_AUTH_FAILED" : "SMTP_DELIVERY_FAILED";
-      e.statusCode = 502;
-      e.smtpCode = err.responseCode;
-      throw e;
+    } catch (err587) {
+      console.warn("[EmailService] Gmail port 587 error: " + err587.message + ". Trying port 465...");
+      try {
+        const fallbackTr = getGmailTransporter(465);
+        await fallbackTr.sendMail({ from: fromAddr, to, subject, html });
+        console.log("[EmailService] " + logLabel + " delivered via Gmail SMTP (port 465) to " + to);
+        return { delivered: true, deliveryMethod: "gmail_smtp", previewUrl: null };
+      } catch (err465) {
+        console.error("[EmailService] Gmail SMTP rejected " + logLabel + " for " + to + ":", err587.message);
+
+        // 2. Resend API fallback
+        if (await trySendViaResend(to, subject, html)) {
+          return { delivered: true, deliveryMethod: "resend_api", previewUrl: null };
+        }
+
+        const isAuthError = err587.responseCode === 535 || (err587.message && (err587.message.includes('535') || err587.message.includes('BadCredentials')));
+        const isTimeout = err587.message?.includes('timeout') || err587.code === 'ETIMEDOUT';
+        let detail = err587.message || "Gmail SMTP rejected the request.";
+        if (isAuthError) {
+          detail = "Invalid Gmail username or App Password. Please verify GMAIL_USER and GMAIL_APP_PASSWORD in Render environment variables.";
+        } else if (isTimeout) {
+          detail = "Gmail SMTP connection timed out. Please check network firewall or use Resend API key fallback.";
+        }
+        const e = new Error(`Email delivery failed: ${detail}`);
+        e.code = isAuthError ? "SMTP_AUTH_FAILED" : "SMTP_DELIVERY_FAILED";
+        e.statusCode = 502;
+        e.smtpCode = err587.responseCode;
+        throw e;
+      }
     }
   }
 
-  // 2. Resend fallback
+  // 2. Resend fallback (if Gmail credentials not set)
   if (await trySendViaResend(to, subject, html)) {
     return { delivered: true, deliveryMethod: "resend_api", previewUrl: null };
   }
@@ -294,7 +311,9 @@ async function testEmailConfig() {
   const user = (process.env.GMAIL_USER || "").trim();
   const pass = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
   if (!user || !pass) return { ok: false, user: user || "(not set)", error: "GMAIL_USER or GMAIL_APP_PASSWORD not configured in .env" };
-  const tr = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass }, connectionTimeout: 10000, greetingTimeout: 10000 });
+  const port = parseInt(process.env.GMAIL_SMTP_PORT, 10) || 587;
+  const isSecure = port === 465;
+  const tr = nodemailer.createTransport({ host: "smtp.gmail.com", port, secure: isSecure, requireTLS: !isSecure, auth: { user, pass }, connectionTimeout: 8000, greetingTimeout: 8000 });
   try {
     await tr.verify();
     console.log("[EmailService] Gmail SMTP credentials verified for " + user);
